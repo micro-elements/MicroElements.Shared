@@ -1,0 +1,46 @@
+<Project>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <!--NuGet package description-->
+  <Import Project="..\..\common.props" />
+
+  <!--Build options-->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace></RootNamespace>
+  </PropertyGroup>
+
+  <!--Source Only specific options-->
+  <PropertyGroup>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>contentFiles</ContentTargetFolders>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <NoBuild>true</NoBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <developmentDependency>true</developmentDependency>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\MicroElements.Shared\**\*.cs" Exclude="..\MicroElements.Shared\obj\**">
+      <Pack>true</Pack>
+      <PackagePath>$(ContentTargetFolders)\cs\any\MicroElements.Shared\%(RecursiveDir)%(FileName)%(Extension)</PackagePath>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Remove="@(PackageReference)" />
+  </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+  <!-- Source only package: Overwrite the standard targets to be empty, so we really get a source only package. -->
+  <Target Name="Compile" />
+  <Target Name="CopyFilesToOutputDirectory" />
+
+</Project>

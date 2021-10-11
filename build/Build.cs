@@ -51,6 +51,8 @@ class Build : NukeBuild
         .Produces(ArtifactsDirectory / "*.nupkg")
         .Executes(() =>
         {
+            EnsureExistingDirectory(ArtifactsDirectory);
+
             string[] projectsToBuild = new[]
             {
                 "MicroElements.JetBrains.Sources",

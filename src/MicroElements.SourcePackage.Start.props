@@ -1,10 +1,12 @@
 <Project>
 
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <!--Package related info that can be overriden in package-->
   <PropertyGroup>
     <Product>MicroElements</Product>
-    <Authors>alexey.petriashev, MicroElements</Authors>
     <Copyright>2021</Copyright>
-
+    <Authors>alexey.petriashev, MicroElements</Authors>
     <Description>Shared MicroElements utils: CodeContracts, Reflection and other reusable extensions.</Description>
     <PackageTags>MicroElements CodeContracts Reflection</PackageTags>
   </PropertyGroup>
@@ -20,26 +22,27 @@
 
   <!--Build options-->
   <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <RootNamespace></RootNamespace>
+    <OutputPath>$(MSBuildThisFileDirectory)/../build</OutputPath>
+    <RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)/../build/</RestoreAdditionalProjectSources>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="NuGetizer" Version="0.7.4" PrivateAssets="All" />
-  </ItemGroup>
-
-  <!--NuGetizer properties-->
+  <!--Source Only specific options-->
   <PropertyGroup>
-    <!--The same as GeneratePackageOnBuild-->
-    <PackOnBuild>true</PackOnBuild>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>contentFiles</ContentTargetFolders>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <NoBuild>true</NoBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <developmentDependency>true</developmentDependency>
 
-    <PackBuildOutput>false</PackBuildOutput>
-    <PackCompile>true</PackCompile>
-
-    <!--Set DevelopmentDependency for package-->
-    <IsDevelopmentDependency>true</IsDevelopmentDependency>
-
+    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
   </PropertyGroup>
 
 </Project>

@@ -1,0 +1,8 @@
+<Project>
+
+  <PropertyGroup>
+    <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">$(MSBuildThisFileDirectory)..\artifacts</PackageOutputPath>
+    <RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)..\artifacts</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--Common package info-->
+  <Import Project="..\..\common.props" />
+
+  <!--Package related info-->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <Product>MicroElements.CodeContracts</Product>
+    <PackageId>$(Product).Sources</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Description>MicroElements source only package: CodeContracts. Main methods: AssertArgumentNotNull.</Description>
+    <PackageTags>MicroElements CodeContracts</PackageTags>
+
+  </PropertyGroup>
+
+  <!--Dependencies-->
+  <ItemGroup>
+    <PackageReference Include="MicroElements.JetBrains.Sources" Version="1.0.0" IncludeAssets="all" />
+  </ItemGroup>
+
+  <!--Source includes-->
+  <ItemGroup>
+    <Compile Include="..\MicroElements.Shared\MicroElements\CodeContracts\**\*.cs">
+      <Link>MicroElements\$(Product)\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+  </ItemGroup>
+
+</Project>

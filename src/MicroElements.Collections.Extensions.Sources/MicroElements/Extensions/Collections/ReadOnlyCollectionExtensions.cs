@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MicroElements.Extensions
+namespace MicroElements.Extensions.Collections
 {
     /// <summary>
     /// <see cref="IReadOnlyCollection{T}"/> extensions.

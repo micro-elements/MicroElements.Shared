@@ -4,6 +4,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.31112.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.Shared", "src\MicroElements.Shared\MicroElements.Shared.csproj", "{CFADA6D4-5279-491C-8FF6-636A2AB7D6BC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{20AC4408-1A4C-4928-87C7-639345DB48D3} = {20AC4408-1A4C-4928-87C7-639345DB48D3}
+		{4A6D2023-46A4-4217-A0DA-EA64BB9D21B5} = {4A6D2023-46A4-4217-A0DA-EA64BB9D21B5}
+		{41213F60-D1A0-46DB-A61E-A80A0AC1743E} = {41213F60-D1A0-46DB-A61E-A80A0AC1743E}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.Shared.Sources", "src\MicroElements.Shared.Sources\MicroElements.Shared.Sources.csproj", "{0ABC387E-B4B3-4C66-8E55-9966266F2B61}"
 EndProject
@@ -12,23 +17,34 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{F224D23C-4CB9-4F78-8B64-7B8C1263EB8C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.Shared.Tests", "test\MicroElements.Shared.Tests\MicroElements.Shared.Tests.csproj", "{B8771CF3-6704-49F3-815C-A1397196DFBE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4A6D2023-46A4-4217-A0DA-EA64BB9D21B5} = {4A6D2023-46A4-4217-A0DA-EA64BB9D21B5}
+	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4AFCFB68-71A9-482A-BFAA-0E08FE08A44C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "other", "other", "{4AFCFB68-71A9-482A-BFAA-0E08FE08A44C}"
 	ProjectSection(SolutionItems) = preProject
 		CHANGELOG.md = CHANGELOG.md
 		common.props = common.props
 		src\Directory.Build.props = src\Directory.Build.props
 		README.md = README.md
-		version.props = version.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.CodeContracts.Sources", "src\MicroElements.CodeContracts.Sources\MicroElements.CodeContracts.Sources.csproj", "{4A6D2023-46A4-4217-A0DA-EA64BB9D21B5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C0C6EDC6-E2DB-4C20-B104-222A647B5E75} = {C0C6EDC6-E2DB-4C20-B104-222A647B5E75}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.JetBrains.Sources", "src\MicroElements.JetBrains.Sources\MicroElements.JetBrains.Sources.csproj", "{C0C6EDC6-E2DB-4C20-B104-222A647B5E75}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{6CBCEC34-9B2F-42E8-B5A4-01079059FBCA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{AE6BA553-BDFA-4BE4-A92C-101299DED649}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.Extensions.Collections.Sources", "src\MicroElements.Collections.Extensions.Sources\MicroElements.Extensions.Collections.Sources.csproj", "{41213F60-D1A0-46DB-A61E-A80A0AC1743E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.Formatting.Sources", "src\MicroElements.Formatting.Sources\MicroElements.Formatting.Sources.csproj", "{20AC4408-1A4C-4928-87C7-639345DB48D3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.Reflection", "src\MicroElements.Reflection\MicroElements.Reflection.csproj", "{5F434150-0404-4ECF-9692-FF2F8F4A112C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +74,18 @@ Global
 		{C0C6EDC6-E2DB-4C20-B104-222A647B5E75}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6CBCEC34-9B2F-42E8-B5A4-01079059FBCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6CBCEC34-9B2F-42E8-B5A4-01079059FBCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41213F60-D1A0-46DB-A61E-A80A0AC1743E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41213F60-D1A0-46DB-A61E-A80A0AC1743E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41213F60-D1A0-46DB-A61E-A80A0AC1743E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41213F60-D1A0-46DB-A61E-A80A0AC1743E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20AC4408-1A4C-4928-87C7-639345DB48D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20AC4408-1A4C-4928-87C7-639345DB48D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20AC4408-1A4C-4928-87C7-639345DB48D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20AC4408-1A4C-4928-87C7-639345DB48D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F434150-0404-4ECF-9692-FF2F8F4A112C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F434150-0404-4ECF-9692-FF2F8F4A112C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F434150-0404-4ECF-9692-FF2F8F4A112C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F434150-0404-4ECF-9692-FF2F8F4A112C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,6 +97,9 @@ Global
 		{4A6D2023-46A4-4217-A0DA-EA64BB9D21B5} = {FD7ABEA6-64C8-4CEA-AECA-F95672558C1D}
 		{C0C6EDC6-E2DB-4C20-B104-222A647B5E75} = {FD7ABEA6-64C8-4CEA-AECA-F95672558C1D}
 		{6CBCEC34-9B2F-42E8-B5A4-01079059FBCA} = {AE6BA553-BDFA-4BE4-A92C-101299DED649}
+		{41213F60-D1A0-46DB-A61E-A80A0AC1743E} = {FD7ABEA6-64C8-4CEA-AECA-F95672558C1D}
+		{20AC4408-1A4C-4928-87C7-639345DB48D3} = {FD7ABEA6-64C8-4CEA-AECA-F95672558C1D}
+		{5F434150-0404-4ECF-9692-FF2F8F4A112C} = {FD7ABEA6-64C8-4CEA-AECA-F95672558C1D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4A04393F-4409-415D-B678-82DF909220F9}

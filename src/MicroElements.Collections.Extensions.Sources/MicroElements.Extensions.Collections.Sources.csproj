@@ -7,11 +7,11 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 
-    <Product>MicroElements.CodeContracts</Product>
+    <Product>MicroElements.Extensions.Collections</Product>
     <PackageId>$(Product).Sources</PackageId>
     <PackageVersion>1.0.0</PackageVersion>
-    <Description>MicroElements source only package: CodeContracts. Main methods: AssertArgumentNotNull.</Description>
-    <PackageTags>MicroElements CodeContracts</PackageTags>
+    <Description>MicroElements source only package: Collection extensions. Main methods: NotNull.</Description>
+    <PackageTags>MicroElements NotNull collections functional</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

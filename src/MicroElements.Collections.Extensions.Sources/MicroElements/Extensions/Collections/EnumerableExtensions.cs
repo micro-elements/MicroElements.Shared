@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace MicroElements.Extensions
+namespace MicroElements.Extensions.Collections
 {
     /// <summary>
     /// <see cref="IEnumerable{T}"/> extensions.

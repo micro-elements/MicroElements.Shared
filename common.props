@@ -25,6 +25,7 @@
     <RootNamespace></RootNamespace>
   </PropertyGroup>
 
+  <!--NuGetizer-->
   <ItemGroup>
     <PackageReference Include="NuGetizer" Version="0.7.4" PrivateAssets="All" />
   </ItemGroup>

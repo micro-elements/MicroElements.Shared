@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Linq;
 using Nuke.Common;
 using Nuke.Common.CI;
@@ -14,17 +15,26 @@ using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
+
+#region Supressions
+
+// ReSharper disable InconsistentNaming
+
+#endregion
+
+//*****************************************************************
+// Support plugins are available for:
+//  - JetBrains ReSharper        https://nuke.build/resharper
+//   - JetBrains Rider            https://nuke.build/rider
+//   - Microsoft VisualStudio     https://nuke.build/visualstudio
+//   - Microsoft VSCode           https://nuke.build/vscode
+//*****************************************************************
+
 [CheckBuildProjectConfigurations]
 [ShutdownDotNetAfterServerBuild]
 class Build : NukeBuild
 {
-    /// Support plugins are available for:
-    ///   - JetBrains ReSharper        https://nuke.build/resharper
-    ///   - JetBrains Rider            https://nuke.build/rider
-    ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
-    ///   - Microsoft VSCode           https://nuke.build/vscode
-
-    public static int Main () => Execute<Build>(x => x.Pack);
+    public static int Main() => Execute<Build>(x => x.BuildFromVS);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
@@ -39,6 +49,15 @@ class Build : NukeBuild
     AbsolutePath TestsDirectory => RootDirectory / "tests";
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
 
+    static readonly string[] ProjectsToBuild = new string[]
+    {
+        "MicroElements.JetBrains.Sources",
+        "MicroElements.CodeContracts.Sources",
+        "MicroElements.Extensions.Collections.Sources",
+        "MicroElements.Formatting.Sources",
+        "MicroElements.Reflection",
+    };
+
     Target Clean => _ => _
         .Executes(() =>
         {
@@ -47,19 +66,28 @@ class Build : NukeBuild
             EnsureCleanDirectory(ArtifactsDirectory);
         });
 
-    Target Pack => _ => _
-        .Produces(ArtifactsDirectory / "*.nupkg")
+    Target BuildFromVS => _ => _
+        .DependsOn(Clean)
         .Executes(() =>
         {
-            EnsureExistingDirectory(ArtifactsDirectory);
-
-            string[] projectsToBuild = new[]
+            foreach (var projectToBuild in ProjectsToBuild)
             {
-                "MicroElements.JetBrains.Sources",
-                "MicroElements.CodeContracts.Sources"
-            };
+                var project = Solution.GetProject(projectToBuild);
+                DotNetBuild(s => s
+                    .SetProjectFile(project)
+                    .SetConfiguration(Configuration)
+                );
+            }
 
-            foreach (var projectToBuild in projectsToBuild)
+            Solution.Save();
+        });
+
+    Target Pack => _ => _
+        .Produces(ArtifactsDirectory / "*.nupkg")
+        .DependsOn(Clean)
+        .Executes(() =>
+        {
+            foreach (var projectToBuild in ProjectsToBuild)
             {
                 var project = Solution.GetProject(projectToBuild);
                 DotNetBuild(s => s
@@ -93,3 +121,16 @@ class Build : NukeBuild
         .DependsOn(Pack)
         .Executes();
 }
+
+#region Stuff
+
+[TypeConverter(typeof(TypeConverter<Configuration>))]
+public class Configuration : Enumeration
+{
+    public static Configuration Debug = new Configuration { Value = nameof(Debug) };
+    public static Configuration Release = new Configuration { Value = nameof(Release) };
+
+    public static implicit operator string(Configuration configuration) => configuration.Value;
+}
+
+#endregion

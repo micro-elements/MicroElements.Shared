@@ -5,12 +5,12 @@
 
   <!--Package related info-->
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
 
-    <Product>MicroElements.CodeContracts</Product>
+    <Product>MicroElements.Formatting</Product>
     <PackageId>$(Product).Sources</PackageId>
     <PackageVersion>1.0.0</PackageVersion>
-    <Description>MicroElements source only package: CodeContracts. Main methods: AssertArgumentNotNull.</Description>
+    <Description>MicroElements source only package: Formatting. Main methods: AssertArgumentNotNull.</Description>
     <PackageTags>MicroElements CodeContracts</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -22,7 +22,7 @@
 
   <!--Dependencies-->
   <ItemGroup>
-    <PackageReference Include="MicroElements.JetBrains.Sources" Version="1.0.0" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.CodeContracts.Sources" Version="1.0.0" IncludeAssets="all" />
   </ItemGroup>
 
 </Project>

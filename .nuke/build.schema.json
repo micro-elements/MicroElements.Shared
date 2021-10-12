@@ -46,6 +46,12 @@
           "type": "boolean",
           "description": "Disables displaying the NUKE logo"
         },
+        "NugetApiKey": {
+          "type": "string"
+        },
+        "NugetApiUrl": {
+          "type": "string"
+        },
         "Partition": {
           "type": "string",
           "description": "Partition to use on CI"
@@ -72,7 +78,9 @@
             "type": "string",
             "enum": [
               "Clean",
-              "Pack"
+              "GitHubActions",
+              "Pack",
+              "Push"
             ]
           }
         },
@@ -87,7 +95,9 @@
             "type": "string",
             "enum": [
               "Clean",
-              "Pack"
+              "GitHubActions",
+              "Pack",
+              "Push"
             ]
           }
         },

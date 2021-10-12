@@ -1,11 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!--Common package info-->
   <Import Project="..\..\common.props" />
 
+  <!--Package related info-->
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <LangVersion>9.0</LangVersion>
-    <Nullable>enable</Nullable>
+
+    <PackageId>MicroElements.Reflection</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Description>MicroElements Reflection.</Description>
+    <PackageTags>MicroElements Reflection</PackageTags>
+
   </PropertyGroup>
 
   <ItemGroup>

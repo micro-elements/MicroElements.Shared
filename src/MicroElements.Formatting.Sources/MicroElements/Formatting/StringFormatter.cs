@@ -27,7 +27,9 @@ namespace MicroElements.Formatting
         /// <param name="value">Value to format.</param>
         /// <param name="nullPlaceholder">Optional null placeholder.</param>
         /// <returns>Formatted string.</returns>
+#if NETSTANDARD2_1
         [return: NotNullIfNotNull("nullPlaceholder")]
+#endif
         public static string? FormatValue(this object? value, string? nullPlaceholder = "null")
         {
             if (value == null)

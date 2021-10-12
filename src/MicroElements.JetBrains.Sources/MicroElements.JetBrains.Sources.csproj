@@ -9,7 +9,7 @@
 
     <PackageId>MicroElements.JetBrains.Sources</PackageId>
     <PackageVersion>1.0.0</PackageVersion>
-    <Description>MicroElements source only package: JetBrains.Annotations. Used in MicroElements projects.</Description>
+    <Description>MicroElements source only package: JetBrains.Annotations. Is subset of JetBrains.Annotations that is used in MicroElements projects.</Description>
     <PackageTags>MicroElements JetBrainsAnnotations</PackageTags>
   </PropertyGroup>
 

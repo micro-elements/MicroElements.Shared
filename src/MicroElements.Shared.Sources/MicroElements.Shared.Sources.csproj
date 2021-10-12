@@ -11,11 +11,11 @@
     <RootNamespace></RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <Compile Include="..\MicroElements.Shared\**\*.cs" Exclude="..\MicroElements.Shared\obj\**">
       <Pack>true</Pack>
       <PackagePath>$(ContentTargetFolders)\cs\any\MicroElements.Shared\%(RecursiveDir)%(FileName)%(Extension)</PackagePath>
     </Compile>
-  </ItemGroup>
+  </ItemGroup>-->
 
 </Project>

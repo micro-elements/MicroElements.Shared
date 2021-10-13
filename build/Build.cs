@@ -39,8 +39,8 @@ class Build : NukeBuild
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
 
-    [Parameter] string NugetApiUrl = "https://api.nuget.org/v3/index.json";
-    [Parameter] string NugetApiKey;
+    [Parameter] string UPLOAD_NUGET = "https://api.nuget.org/v3/index.json";
+    [Parameter] string UPLOAD_NUGET_API_KEY;
 
     [Solution] readonly Solution Solution;
     [GitRepository] readonly GitRepository GitRepository;
@@ -99,8 +99,8 @@ class Build : NukeBuild
 
     Target Push => _ => _
         .DependsOn(Pack)
-        .Requires(() => NugetApiUrl)
-        .Requires(() => NugetApiKey)
+        .Requires(() => UPLOAD_NUGET)
+        .Requires(() => UPLOAD_NUGET_API_KEY)
         .Requires(() => Configuration.Equals(Configuration.Release))
         .Executes(() =>
         {
@@ -111,8 +111,8 @@ class Build : NukeBuild
                 {
                     DotNetNuGetPush(s => s
                         .SetTargetPath(x)
-                        .SetSource(NugetApiUrl)
-                        .SetApiKey(NugetApiKey)
+                        .SetSource(UPLOAD_NUGET)
+                        .SetApiKey(UPLOAD_NUGET_API_KEY)
                     );
                 });
         });

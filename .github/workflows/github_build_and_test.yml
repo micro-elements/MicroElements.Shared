@@ -6,20 +6,21 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-    #------------------------------
-    - name: Checkout repository
-      uses: actions/checkout@v2
-    #------------------------------
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 5.0.400
-    #-------------------------------
-    - name: Build and Test
-      run: ./build.sh --target GitHubActions --configuration Release
-    #-------------------------------
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: artifacts
-        path: artifacts/*.nupkg
+      #------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      #------------------------------
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.400
+      #-------------------------------
+      - name: Build and Test
+        run: ./build.sh --target GitHubActions
+      #-------------------------------
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: artifacts/*.nupkg
+      #-------------------------------

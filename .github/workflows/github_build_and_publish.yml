@@ -1,24 +1,29 @@
-name: Build and publish
+name: Build and Publish
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "Sample input"
+        required: false
+        default: "Mona the Octocat"
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
-    #------------------------------
-    - name: Checkout repository
-      uses: actions/checkout@v2
-    #------------------------------
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 5.0.400
-    #-------------------------------
-    - name: Build and Publish
-      env:
-        UPLOAD_NUGET: ${{ secrets.UPLOAD_NUGET }}
-        UPLOAD_NUGET_API_KEY: ${{ secrets.UPLOAD_NUGET_API_KEY }}
-      run: ./build.sh --target GitHubActions --configuration Release
-    #-------------------------------
-   
+      #------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      #------------------------------
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.400
+      #-------------------------------
+      - name: Build and Publish
+        env:
+          UPLOAD_NUGET: ${{ secrets.UPLOAD_NUGET }}
+          UPLOAD_NUGET_API_KEY: ${{ secrets.UPLOAD_NUGET_API_KEY }}
+        run: ./build.sh --target Push
+      #-------------------------------

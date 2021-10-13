@@ -9,7 +9,7 @@
 
     <PackageId>MicroElements.Reflection</PackageId>
     <PackageVersion>1.0.0</PackageVersion>
-    <Description>MicroElements Reflection.</Description>
+    <Description>MicroElements Reflection utils.</Description>
     <PackageTags>MicroElements Reflection</PackageTags>
 
   </PropertyGroup>

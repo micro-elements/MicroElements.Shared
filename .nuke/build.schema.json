@@ -6,6 +6,10 @@
     "build": {
       "type": "object",
       "properties": {
+        "BUILD_PATTERN": {
+          "type": "string",
+          "description": "Projects to build. Project will be build if project name is in build pattern"
+        },
         "Configuration": {
           "type": "string",
           "description": "Configuration to build - Default is 'Debug' (local) or 'Release' (server)",
@@ -46,12 +50,6 @@
           "type": "boolean",
           "description": "Disables displaying the NUKE logo"
         },
-        "NugetApiKey": {
-          "type": "string"
-        },
-        "NugetApiUrl": {
-          "type": "string"
-        },
         "Partition": {
           "type": "string",
           "description": "Partition to use on CI"
@@ -77,9 +75,11 @@
           "items": {
             "type": "string",
             "enum": [
+              "BuildAndPack",
+              "BuildFromVS",
               "Clean",
+              "DumpArguments",
               "GitHubActions",
-              "Pack",
               "Push"
             ]
           }
@@ -94,12 +94,26 @@
           "items": {
             "type": "string",
             "enum": [
+              "BuildAndPack",
+              "BuildFromVS",
               "Clean",
+              "DumpArguments",
               "GitHubActions",
-              "Pack",
               "Push"
             ]
           }
+        },
+        "UPLOAD_NUGET": {
+          "type": "string",
+          "description": "Nuget Url for upload"
+        },
+        "UPLOAD_NUGET_API_KEY": {
+          "type": "string",
+          "description": "Nuget ApiKey"
+        },
+        "UPLOAD_PATTERN": {
+          "type": "string",
+          "description": "Projects to upload. Project will be uploaded if project name is in upload pattern"
         },
         "Verbosity": {
           "type": "string",

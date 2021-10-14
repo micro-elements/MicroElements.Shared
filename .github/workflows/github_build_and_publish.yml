@@ -3,10 +3,12 @@ name: Build and Publish
 on:
   workflow_dispatch:
     inputs:
-      name:
-        description: "Sample input"
+      BUILD_PATTERN:
+        description: "Projects to build. Project will be build if project name is in build pattern."
         required: false
-        default: "Mona the Octocat"
+      UPLOAD_PATTERN:
+        description: "Projects to upload. Project will be uploaded if project name is in upload pattern."
+        required: false
 
 jobs:
   build-and-publish:

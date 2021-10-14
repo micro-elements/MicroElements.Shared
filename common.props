@@ -1,28 +1,10 @@
 <Project>
 
-  <PropertyGroup>
-    <Product>MicroElements</Product>
-    <Authors>alexey.petriashev, MicroElements</Authors>
-    <Copyright>2021</Copyright>
-
-    <Description>Shared MicroElements utils: CodeContracts, Reflection and other reusable extensions.</Description>
-    <PackageTags>MicroElements CodeContracts Reflection</PackageTags>
-  </PropertyGroup>
-
-  <!--Common package info-->
-  <PropertyGroup>
-    <PackageIconUrl>https://raw.githubusercontent.com/micro-elements/MicroElements/master/image/logo_rounded.png</PackageIconUrl>
-    <PackageProjectUrl>https://github.com/micro-elements/MicroElements.Shared</PackageProjectUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/micro-elements/MicroElements.Shared/master/LICENSE</PackageLicenseUrl>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/micro-elements/MicroElements.Shared.git</RepositoryUrl>
-  </PropertyGroup>
-
   <!--Build options-->
   <PropertyGroup>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>MicroElements</RootNamespace>
   </PropertyGroup>
 
   <!--NuGetizer-->
@@ -34,13 +16,10 @@
   <PropertyGroup>
     <!--The same as GeneratePackageOnBuild-->
     <PackOnBuild>true</PackOnBuild>
-
     <PackBuildOutput>false</PackBuildOutput>
     <PackCompile>true</PackCompile>
-
     <!--Set DevelopmentDependency for package-->
     <IsDevelopmentDependency>true</IsDevelopmentDependency>
-
   </PropertyGroup>
 
 </Project>

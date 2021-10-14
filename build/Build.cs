@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.Build.Tasks.Deployment.ManifestUtilities;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.TeamCity;
@@ -120,6 +121,9 @@ partial class Build : NukeBuild, ITest
             DumpArg(build => build.UPLOAD_NUGET_API_KEY, isSecured:true);
             DumpArg(build => build.BUILD_PATTERN);
             DumpArg(build => build.UPLOAD_PATTERN);
+
+            DumpArg("RepositoryUrl", GitRepository.HttpsUrl);
+            DumpArg("PackageProjectUrl", $"https://github.com/{GitRepository.Identifier}");
         });
 
     public void DumpArg<TProperty>(
@@ -144,6 +148,15 @@ partial class Build : NukeBuild, ITest
             propertyValue = propertyInfo.GetValue(this);
         }
 
+        DumpArg(propertyName, propertyValue, isSecured, nullPlaceholder);
+    }
+
+    public void DumpArg(
+        string propertyName,
+        object? propertyValue,
+        bool isSecured = false,
+        string nullPlaceholder = "null")
+    {
         string textValue = (propertyValue != null ? propertyValue.ToString() : nullPlaceholder) ?? nullPlaceholder;
         if (isSecured && propertyValue != null)
             textValue = "***SECURED***";
@@ -176,7 +189,20 @@ partial class Build : NukeBuild, ITest
                 var project = Solution.GetProject(projectToBuild);
                 DotNetBuild(s => s
                     .SetProjectFile(project)
-                    .SetConfiguration(Configuration));
+                    .SetConfiguration(Configuration)
+                    .EnableDeterministic()
+                    
+                    .SetCopyright($"Copyright (c) MicroElements {DateTime.Today:yyyy}")
+                    .SetAuthors("alexey.petriashev, MicroElements".EncodeComma())
+                    .SetPackageIconUrl("https://raw.githubusercontent.com/micro-elements/MicroElements/master/image/logo_rounded.png")
+
+                    .SetRepositoryType("git")
+                    .SetRepositoryUrl(GitRepository.HttpsUrl)
+                    .SetPackageProjectUrl($"https://github.com/{GitRepository.Identifier}")
+
+                    .ResetPackageLicenseUrl()
+                    .SetProperty("PackageLicenseExpression", "MIT")
+                );
             }
         });
 
@@ -200,7 +226,7 @@ partial class Build : NukeBuild, ITest
         });
 
     Target Push => _ => _
-        .DependsOn(BuildAndPack)
+        .DependsOn(Test)
         .Requires(() => UPLOAD_NUGET)
         .Requires(() => UPLOAD_NUGET_API_KEY)
         .Requires(() => Configuration.Equals(Configuration.Release))
@@ -245,7 +271,13 @@ public interface ITest : IHazArtifacts
 
 public static class BuildExtensions
 {
-    public  static bool IsMatchesPattern(this string item, string? pattern) => string.IsNullOrWhiteSpace(pattern) || pattern.Contains(item, StringComparison.OrdinalIgnoreCase);
+    public static bool IsMatchesPattern(this string item, string? pattern) => string.IsNullOrWhiteSpace(pattern) || pattern.Contains(item, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Encodes comma as special symbol. Comma in property fails build.
+    /// See: https://github.com/nuke-build/nuke/issues/497
+    /// </summary>
+    public static string EncodeComma(this string value) => value.Replace(",", "%2c");
 }
 
 [TypeConverter(typeof(TypeConverter<Configuration>))]

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using MicroElements.CodeContracts;
-using MicroElements.Extensions.Collections;
+using MicroElements.Collections.Extensions;
 using MicroElements.Formatting;
 
 namespace MicroElements.Reflection

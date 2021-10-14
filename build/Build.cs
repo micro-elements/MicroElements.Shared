@@ -70,9 +70,10 @@ class Build : NukeBuild
     {
         "MicroElements.JetBrains.Sources",
         "MicroElements.CodeContracts.Sources",
-        "MicroElements.Extensions.Collections.Sources",
+        "MicroElements.Collections.Extensions.Sources",
         "MicroElements.Formatting.Sources",
         "MicroElements.Reflection",
+        "MicroElements.Shared.Sources",
     };
 
     Target DumpArguments => _ => _

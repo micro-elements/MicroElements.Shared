@@ -27,5 +27,7 @@ jobs:
         env:
           UPLOAD_NUGET: ${{ secrets.UPLOAD_NUGET }}
           UPLOAD_NUGET_API_KEY: ${{ secrets.UPLOAD_NUGET_API_KEY }}
+          BUILD_PATTERN: ${{ inputs.BUILD_PATTERN }}
+          UPLOAD_PATTERN: ${{ inputs.UPLOAD_PATTERN }}
         run: ./build.sh --target Push
       #-------------------------------

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace MicroElements.Shared.Tests
 {
-    public class CollectionExtensionsTests
+    public class CollectionsTests
     {
         [Fact]
         public void NotNull()

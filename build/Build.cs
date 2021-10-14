@@ -1,16 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Nuke.Common;
 using Nuke.Common.CI;
+using Nuke.Common.CI.TeamCity;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
+using Nuke.Common.Tools.Coverlet;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Logger;
@@ -34,12 +38,31 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 //   - Microsoft VSCode           https://nuke.build/vscode
 //*****************************************************************
 
-[CheckBuildProjectConfigurations]
-[ShutdownDotNetAfterServerBuild]
-class Build : NukeBuild
+partial class Build
 {
     public static int Main() => Execute<Build>(x => x.BuildFromVS);
 
+    Target BuildFromVS => _ => _
+        .DependsOn(BuildAndPack, Test)
+        .Executes(() =>
+        {
+            // To properly reload projects
+            Solution.Save();
+        });
+
+    Target GitHubActions => _ => _
+        .DependsOn(BuildAndPack, Test)
+        .Executes();
+
+    Target GitHubActionsPublish => _ => _
+        .DependsOn(BuildAndPack, Test, Push)
+        .Executes();
+}
+
+[CheckBuildProjectConfigurations]
+[ShutdownDotNetAfterServerBuild]
+partial class Build : NukeBuild, ITest
+{
     #region Build Arguments
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
@@ -66,6 +89,11 @@ class Build : NukeBuild
     AbsolutePath TestsDirectory => RootDirectory / "tests";
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
 
+    [Parameter("PublishTestResults")]
+    bool PublishTestResults = true;
+
+    AbsolutePath TestResultsDirectory => ArtifactsDirectory / "test-results";
+
     static readonly string[] ProjectsToBuild = new string[]
     {
         "MicroElements.JetBrains.Sources",
@@ -76,7 +104,13 @@ class Build : NukeBuild
         "MicroElements.Shared.Sources",
     };
 
+    static readonly string[] TestProjects = new string[]
+    {
+        "MicroElements.Shared.Tests",
+    };
+
     Target DumpArguments => _ => _
+        .Before(Clean)
         .Executes(() =>
         {
             DumpArg(build => IsLocalBuild);
@@ -146,6 +180,25 @@ class Build : NukeBuild
             }
         });
 
+    Target Test => _ => _
+        .DependsOn(BuildAndPack)
+        .Produces(TestResultsDirectory / "*.trx")
+        .Executes(() =>
+        {
+            // TODO: see Nuke.Components.ITest
+
+            foreach (var projectName in TestProjects)
+            {
+                var testProject = Solution.GetProject(projectName);
+                DotNetTest(s => s
+                    .SetProjectFile(testProject)
+                    .SetConfiguration(Configuration)
+                    .When(PublishTestResults, oo => oo
+                        .SetLoggers("trx")
+                        .SetResultsDirectory(TestResultsDirectory)));
+            }
+        });
+
     Target Push => _ => _
         .DependsOn(BuildAndPack)
         .Requires(() => UPLOAD_NUGET)
@@ -174,17 +227,18 @@ class Build : NukeBuild
             }
         });
 
-    Target BuildFromVS => _ => _
-        .DependsOn(BuildAndPack)
-        .Executes(() =>
-        {
-            // To properly reload projects
-            Solution.Save();
-        });
+}
 
-    Target GitHubActions => _ => _
-        .DependsOn(BuildAndPack)
-        .Executes();
+[PublicAPI]
+public interface IHazArtifacts : INukeBuild
+{
+    AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
+}
+
+[PublicAPI]
+public interface ITest : IHazArtifacts
+{
+    public AbsolutePath TestResultDirectory => ArtifactsDirectory / "test-results";
 }
 
 #region Stuff
@@ -192,8 +246,6 @@ class Build : NukeBuild
 public static class BuildExtensions
 {
     public  static bool IsMatchesPattern(this string item, string? pattern) => string.IsNullOrWhiteSpace(pattern) || pattern.Contains(item, StringComparison.OrdinalIgnoreCase);
-
-
 }
 
 [TypeConverter(typeof(TypeConverter<Configuration>))]

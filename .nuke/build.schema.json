@@ -65,6 +65,10 @@
             "type": "string"
           }
         },
+        "PublishTestResults": {
+          "type": "boolean",
+          "description": "PublishTestResults"
+        },
         "Root": {
           "type": "string",
           "description": "Root directory during build execution"
@@ -80,7 +84,8 @@
               "Clean",
               "DumpArguments",
               "GitHubActions",
-              "Push"
+              "Push",
+              "Test"
             ]
           }
         },
@@ -99,7 +104,8 @@
               "Clean",
               "DumpArguments",
               "GitHubActions",
-              "Push"
+              "Push",
+              "Test"
             ]
           }
         },

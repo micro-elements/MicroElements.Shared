@@ -6,12 +6,24 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using JetBrains.Annotations;
 
-namespace MicroElements.Collections.Extensions
+namespace MicroElements.Collections.Extensions.NotNull
 {
-    /// <summary>
-    /// <see cref="IEnumerable{T}"/> extensions.
-    /// </summary>
-    internal static partial class CollectionExtensions
+    /// <readme id="NotNull">
+    /// <![CDATA[
+    /// ### NotNull
+    /// Returns not null (empty) enumeration if input is null.
+    /// 
+    /// ```csharp
+    /// string? GetFirstName(IEnumerable<string>? names)
+    /// {
+    ///     return names
+    ///         .NotNull()
+    ///         .FirstOrDefault();
+    /// }
+    /// ```
+    /// ]]>
+    /// </readme>
+    internal static partial class NotNullExtensions
     {
         /// <summary>
         /// Returns not null <see cref="IEnumerable{T}"/>.

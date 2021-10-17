@@ -1,8 +1,18 @@
 <Project>
 
   <PropertyGroup>
+    <!--Output path for packages (artifacts).-->
     <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">$(MSBuildThisFileDirectory)..\artifacts</PackageOutputPath>
+
+    <!--In DEBUG can use artifacts directory as NuGet source. -->
     <RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)..\artifacts</RestoreAdditionalProjectSources>
+
+    <!--Xml documentation. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='DEBUG'">
+
   </PropertyGroup>
 
 </Project>

@@ -101,6 +101,7 @@ partial class Build : NukeBuild, ITest
         "MicroElements.CodeContracts.Sources",
         "MicroElements.Collections.Extensions.Sources",
         "MicroElements.Formatting.Sources",
+        "MicroElements.Reflection.Sources",
         "MicroElements.Reflection",
         "MicroElements.Shared.Sources",
     };
@@ -199,6 +200,8 @@ partial class Build : NukeBuild, ITest
                     .SetRepositoryType("git")
                     .SetRepositoryUrl(GitRepository.HttpsUrl)
                     .SetPackageProjectUrl($"https://github.com/{GitRepository.Identifier}")
+                    .SetProperty("RepositoryBranch", GitRepository.Branch)
+                    .SetProperty("RepositoryCommit", GitRepository.Commit)
 
                     .ResetPackageLicenseUrl()
                     .SetProperty("PackageLicenseExpression", "MIT")

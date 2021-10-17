@@ -7,10 +7,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
 
-    <PackageId>MicroElements.Collections.Extensions.Sources</PackageId>
-    <PackageVersion>1.1.0</PackageVersion>
-    <Description>MicroElements source only package: Collection extensions. Main methods: NotNull.</Description>
-    <PackageTags>MicroElements NotNull collections functional</PackageTags>
+    <PackageId>MicroElements.Reflection.Sources</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Description>MicroElements source only package: Reflection. Classes: TypeExtensions, TypeCheck.</Description>
+    <PackageTags>MicroElements Reflection</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

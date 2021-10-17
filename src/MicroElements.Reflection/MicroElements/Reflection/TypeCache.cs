@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using MicroElements.CodeContracts;
-using MicroElements.Collections.Extensions;
+using MicroElements.Collections.Extensions.NotNull;
 using MicroElements.Formatting;
 
 namespace MicroElements.Reflection

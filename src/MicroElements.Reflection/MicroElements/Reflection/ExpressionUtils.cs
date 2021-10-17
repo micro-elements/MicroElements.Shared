@@ -31,6 +31,9 @@ namespace MicroElements.Reflection
             return setExpression.Compile();
         }
 
+        /// <summary>
+        /// Gets property setter.
+        /// </summary>
         public static Action<object, TProperty> GetPropertySetter<TProperty>(Type instanceType, string propertyName)
         {
             var propertyInfo = instanceType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);

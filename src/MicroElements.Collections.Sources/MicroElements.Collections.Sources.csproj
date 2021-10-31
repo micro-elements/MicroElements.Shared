@@ -7,7 +7,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
 
-    <PackageId>MicroElements.Collections.Extensions.Sources</PackageId>
+    <PackageId>MicroElements.Collections.Sources</PackageId>
     <PackageVersion>1.1.0</PackageVersion>
     <Description>MicroElements source only package: Collection extensions. Main methods: NotNull.</Description>
     <PackageTags>MicroElements NotNull collections functional</PackageTags>

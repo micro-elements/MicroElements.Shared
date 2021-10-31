@@ -97,9 +97,10 @@ partial class Build : NukeBuild, ITest
 
     static readonly string[] ProjectsToBuild = new string[]
     {
+        "MicroElements.IsExternalInit",
         "MicroElements.JetBrains.Sources",
         "MicroElements.CodeContracts.Sources",
-        "MicroElements.Collections.Extensions.Sources",
+        "MicroElements.Collections.Sources",
         "MicroElements.Formatting.Sources",
         "MicroElements.Reflection.Sources",
         "MicroElements.Reflection",

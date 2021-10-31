@@ -9,8 +9,8 @@
 
     <PackageId>MicroElements.Reflection.Sources</PackageId>
     <PackageVersion>1.1.0</PackageVersion>
-    <Description>MicroElements source only package: Reflection. Classes: TypeExtensions, TypeCheck.</Description>
-    <PackageTags>MicroElements Reflection</PackageTags>
+    <Description>MicroElements source only package: Reflection. Classes: TypeExtensions, TypeCheck, ObjectExtensions, Expressions, CodeCompiler.</Description>
+    <PackageTags>MicroElements Reflection Expressions</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

@@ -7,11 +7,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
 
-    <Product>MicroElements.Formatting</Product>
-    <PackageId>$(Product).Sources</PackageId>
+    <PackageId>MicroElements.Formatting.Sources</PackageId>
     <PackageVersion>1.0.0</PackageVersion>
-    <Description>MicroElements source only package: Formatting. Main methods: AssertArgumentNotNull.</Description>
-    <PackageTags>MicroElements CodeContracts</PackageTags>
+    <Description>MicroElements source only package: Formatting. Main methods: FormatValue, FormatAsTuple.</Description>
+    <PackageTags>MicroElements Formatting</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

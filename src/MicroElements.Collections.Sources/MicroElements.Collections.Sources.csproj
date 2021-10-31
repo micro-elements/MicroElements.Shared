@@ -9,8 +9,8 @@
 
     <PackageId>MicroElements.Collections.Sources</PackageId>
     <PackageVersion>1.1.0</PackageVersion>
-    <Description>MicroElements source only package: Collection extensions. Main methods: NotNull.</Description>
-    <PackageTags>MicroElements NotNull collections functional</PackageTags>
+    <Description>MicroElements source only package: Collection extensions: NotNull, Iterate. Special collections: TwoLayerCache.</Description>
+    <PackageTags>MicroElements NotNull collections functional TwoLayerCache</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

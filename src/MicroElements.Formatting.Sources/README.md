@@ -5,18 +5,11 @@ Source only package does not forces binary reference on it. Just add package and
 
  ## Usage
  ```csharp
-void Foo(string arg)
+new[] { 1, 2 }.FormatAsTuple().Should().Be("(1, 2)");
+new[] { 1.1, 2.5 }.FormatAsTuple().Should().Be("(1.1, 2.5)");
+new[]
 {
-    // Method arguments checks
-    arg.AssertArgumentNotNull(nameof(arg));
-
-    // Argument usage
-    UseArg(arg);
-}
-
-void Bar(string arg)
-{
-    // Can be used as inplace replacement of UseArg(arg);
-    UseArg(arg.AssertArgumentNotNull(nameof(arg)));
-}
+    new DateTime(2021, 06, 22),
+    new DateTime(2021, 06, 22, 13, 52, 49, 123)
+}.FormatAsTuple().Should().Be("(2021-06-22, 2021-06-22T13:52:49)");
  ```

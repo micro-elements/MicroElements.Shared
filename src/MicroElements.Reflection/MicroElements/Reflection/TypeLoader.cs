@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using MicroElements.CodeContracts;
 using MicroElements.Collections.Extensions.NotNull;
-using MicroElements.Formatting;
+using MicroElements.Formatting.StringFormatter;
 
 namespace MicroElements.Reflection
 {
@@ -147,7 +147,7 @@ namespace MicroElements.Reflection
     /// <summary>
     /// Assembly filters.
     /// </summary>
-    public class AssemblyFilters
+    internal class AssemblyFilters
     {
         /// <summary>
         /// Empty assembly filter with no filtering.
@@ -195,7 +195,7 @@ namespace MicroElements.Reflection
     /// <summary>
     /// Assembly source.
     /// </summary>
-    public class AssemblySource
+    internal class AssemblySource
     {
         /// <summary>
         /// Gets an empty assembly source. No assemblies, no filters.
@@ -320,7 +320,7 @@ namespace MicroElements.Reflection
     /// <summary>
     /// Type filters.
     /// </summary>
-    public class TypeFilters
+    internal class TypeFilters
     {
         /// <summary>
         /// Empty type filter.
@@ -405,7 +405,7 @@ namespace MicroElements.Reflection
     /// <summary>
     /// Type source.
     /// </summary>
-    public class TypeSource
+    internal class TypeSource
     {
         /// <summary>
         /// Empty type source.
@@ -499,7 +499,7 @@ namespace MicroElements.Reflection
     /// Allows to register type in cache without assembly scanning.
     /// Allows to register type alias.
     /// </summary>
-    public class TypeRegistration
+    internal class TypeRegistration
     {
         /// <summary>
         /// Type source.

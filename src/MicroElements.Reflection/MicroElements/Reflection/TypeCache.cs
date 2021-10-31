@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using MicroElements.CodeContracts;
 using MicroElements.Collections.Extensions.NotNull;
-using MicroElements.Formatting;
+using MicroElements.Formatting.StringFormatter;
 
 namespace MicroElements.Reflection
 {
@@ -18,48 +18,48 @@ namespace MicroElements.Reflection
     /// 2. Reducing reflection time with caching by name or alias.
     /// </summary>
     /// <para>Use: <see cref="TypeCache.Create"/> method to create type cache.</para>
-    public interface ITypeCache
+    internal interface ITypeCache
     {
         /// <summary>
         /// Gets Assembly filters that was used to get <see cref="Assemblies"/>.
         /// </summary>
-        public AssemblySource AssemblySource { get; }
+        AssemblySource AssemblySource { get; }
 
         /// <summary>
         /// Gets Type filters that was used to get <see cref="Types"/>.
         /// </summary>
-        public TypeSource TypeSource { get; }
+        TypeSource TypeSource { get; }
 
         /// <summary>
         /// Gets assemblies that matches assembly filters.
         /// </summary>
-        public IReadOnlyCollection<Assembly> Assemblies { get; }
+        IReadOnlyCollection<Assembly> Assemblies { get; }
 
         /// <summary>
         /// Gets types that matches type filters.
         /// </summary>
-        public IReadOnlyCollection<Type> Types { get; }
+        IReadOnlyCollection<Type> Types { get; }
 
         /// <summary>
         /// Gets types indexed by <see cref="Type.FullName"/>.
         /// </summary>
-        public IReadOnlyDictionary<string, Type> TypeByFullName { get; }
+        IReadOnlyDictionary<string, Type> TypeByFullName { get; }
 
         /// <summary>
         /// Gets types indexed by type alias.
         /// </summary>
-        public IReadOnlyDictionary<string, Type> TypeByAlias { get; }
+        IReadOnlyDictionary<string, Type> TypeByAlias { get; }
 
         /// <summary>
         /// Gets type by its alias name.
         /// </summary>
-        public IReadOnlyDictionary<Type, string> AliasForType { get; }
+        IReadOnlyDictionary<Type, string> AliasForType { get; }
     }
 
     /// <summary>
     /// Default  type cache implementation.
     /// </summary>
-    public class TypeCacheDefault : ITypeCache
+    internal class TypeCacheDefault : ITypeCache
     {
         /// <summary>
         /// Gets Assembly filters that was used to get <see cref="Assemblies"/>.
@@ -105,11 +105,9 @@ namespace MicroElements.Reflection
             AssemblySource assemblySource,
             TypeSource typeSource)
         {
-            assemblySource.AssertArgumentNotNull(nameof(assemblySource));
-            typeSource.AssertArgumentNotNull(nameof(typeSource));
+            AssemblySource = assemblySource.AssertArgumentNotNull(nameof(assemblySource));
+            TypeSource = typeSource.AssertArgumentNotNull(nameof(typeSource));
 
-            AssemblySource = assemblySource;
-            TypeSource = typeSource;
             Assemblies = assemblySource.ResultAssemblies.NotNull().ToArray();
 
             Types = TypeSource
@@ -173,7 +171,7 @@ namespace MicroElements.Reflection
     /// 2. Reducing reflection time with caching by name or alias.
     /// </summary>
     /// <para>Use: <see cref="TypeCache.Create"/> method to create type cache.</para>
-    public static class TypeCache
+    internal static class TypeCache
     {
         /// <summary>
         /// Gets default type cache with all assembly types.
@@ -318,7 +316,7 @@ namespace MicroElements.Reflection
     /// <summary>
     /// Extension methods for <see cref="ITypeCache"/>.
     /// </summary>
-    public static class TypeCacheExtensions
+    internal static class TypeCacheExtensions
     {
         /// <summary>
         /// Determines whether the type cache contains the specified type.

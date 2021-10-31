@@ -1,6 +1,6 @@
 ﻿using System;
 using FluentAssertions;
-using MicroElements.Formatting;
+using MicroElements.Formatting.StringFormatter;
 using Xunit;
 
 namespace MicroElements.Shared.Tests

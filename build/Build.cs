@@ -64,6 +64,23 @@ partial class Build
 [ShutdownDotNetAfterServerBuild]
 partial class Build : NukeBuild, ITest
 {
+    static readonly string[] ProjectsToBuild = new string[]
+    {
+        "MicroElements.IsExternalInit",
+        "MicroElements.JetBrains.Sources",
+        "MicroElements.CodeContracts.Sources",
+        "MicroElements.Collections.Sources",
+        "MicroElements.Formatting.Sources",
+        "MicroElements.Reflection.Sources",
+        "MicroElements.Reflection",
+        "MicroElements.Shared.Sources",
+    };
+
+    static readonly string[] TestProjects = new string[]
+    {
+        "MicroElements.Shared.Tests",
+    };
+
     #region Build Arguments
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
@@ -81,6 +98,9 @@ partial class Build : NukeBuild, ITest
     [Parameter("Projects to upload. Project will be uploaded if project name is in upload pattern.")]
     string? UPLOAD_PATTERN;
 
+    [Parameter("PublishTestResults")]
+    bool PublishTestResults = true;
+
     #endregion
 
     [Solution] readonly Solution Solution = null!;
@@ -89,28 +109,7 @@ partial class Build : NukeBuild, ITest
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath TestsDirectory => RootDirectory / "tests";
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
-
-    [Parameter("PublishTestResults")]
-    bool PublishTestResults = true;
-
     AbsolutePath TestResultsDirectory => ArtifactsDirectory / "test-results";
-
-    static readonly string[] ProjectsToBuild = new string[]
-    {
-        "MicroElements.IsExternalInit",
-        "MicroElements.JetBrains.Sources",
-        "MicroElements.CodeContracts.Sources",
-        "MicroElements.Collections.Sources",
-        "MicroElements.Formatting.Sources",
-        "MicroElements.Reflection.Sources",
-        "MicroElements.Reflection",
-        "MicroElements.Shared.Sources",
-    };
-
-    static readonly string[] TestProjects = new string[]
-    {
-        "MicroElements.Shared.Tests",
-    };
 
     Target DumpArguments => _ => _
         .Before(Clean)

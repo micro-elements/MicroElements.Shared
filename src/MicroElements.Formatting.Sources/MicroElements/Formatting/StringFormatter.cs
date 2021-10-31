@@ -9,7 +9,8 @@ using System.Globalization;
 using System.Text;
 using MicroElements.CodeContracts;
 
-namespace MicroElements.Formatting
+// ReSharper disable once CheckNamespace
+namespace MicroElements.Formatting.StringFormatter
 {
     /// <summary>
     /// Formatting extensions.

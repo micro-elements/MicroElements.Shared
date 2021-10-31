@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--Common package info-->
+  <Import Project="..\..\common.props" />
+
+  <!--Package related info-->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <PackageId>MicroElements.IsExternalInit</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Description>MicroElements source only package: IsExternalInit. Record support for dotnet versions before .NET 5.0.</Description>
+    <PackageTags>MicroElements IsExternalInit Record</PackageTags>
+
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+</Project>

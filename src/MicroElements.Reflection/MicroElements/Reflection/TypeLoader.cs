@@ -49,12 +49,12 @@ namespace MicroElements.Reflection
                     throw new DirectoryNotFoundException($"Assembly ScanDirectory {assemblySource.LoadFromDirectory} is not exists.");
 
                 var assembliesFromDirectory =
-                    Directory
-                        .EnumerateFiles(assemblySource.LoadFromDirectory, "*.dll", SearchOption.TopDirectoryOnly)
-                        .Concat(Directory.EnumerateFiles(assemblySource.LoadFromDirectory, "*.exe", SearchOption.TopDirectoryOnly))
+                    assemblySource
+                        .SearchPatterns
+                        .SelectMany(filePattern => Directory.EnumerateFiles(assemblySource.LoadFromDirectory, filePattern, SearchOption.TopDirectoryOnly))
                         .IncludeByPatterns(fileName => fileName, assemblyFilters.IncludePatterns)
                         .ExcludeByPatterns(fileName => fileName, assemblyFilters.ExcludePatterns)
-                        .Select(assemblyFile => TypeLoader.TryLoadAssemblyFrom(assemblyFile, messages)!)
+                        .Select(assemblyFile => TryLoadAssemblyFrom(assemblyFile, messages)!)
                         .Where(assembly => assembly != null);
 
                 assemblies = assemblies.Concat(assembliesFromDirectory);
@@ -198,7 +198,7 @@ namespace MicroElements.Reflection
     public class AssemblySource
     {
         /// <summary>
-        /// Gets empty assembly source. No assemblies, no filters.
+        /// Gets an empty assembly source. No assemblies, no filters.
         /// </summary>
         public static AssemblySource Empty { get; } = new AssemblySource(
             loadFromDomain: false,
@@ -225,6 +225,11 @@ namespace MicroElements.Reflection
         public string? LoadFromDirectory { get; }
 
         /// <summary>
+        /// Optional file patterns for loading from directory.
+        /// </summary>
+        public IReadOnlyCollection<string> SearchPatterns { get; }
+
+        /// <summary>
         /// Filters to filter assemblies.
         /// </summary>
         public AssemblyFilters AssemblyFilters { get; }
@@ -249,6 +254,7 @@ namespace MicroElements.Reflection
         /// </summary>
         /// <param name="loadFromDomain">Optional load assemblies from <see cref="AppDomain.CurrentDomain"/>.</param>
         /// <param name="loadFromDirectory">Optional load assemblies from provided directory.</param>
+        /// <param name="searchPatterns">Optional file patterns for loading from directory.</param>
         /// <param name="assemblyFilters">Optional assembly filters.</param>
         /// <param name="assemblies">User provided assemblies.</param>
         /// <param name="filterByTypeFilters">Filter assemblies after type filtering and take only assemblies that owns filtered types.</param>
@@ -256,6 +262,7 @@ namespace MicroElements.Reflection
         public AssemblySource(
             bool loadFromDomain = false,
             string? loadFromDirectory = null,
+            IReadOnlyCollection<string>? searchPatterns = null,
             AssemblyFilters? assemblyFilters = null,
             IReadOnlyCollection<Assembly>? assemblies = null,
             bool filterByTypeFilters = true,
@@ -263,6 +270,7 @@ namespace MicroElements.Reflection
         {
             LoadFromDomain = loadFromDomain;
             LoadFromDirectory = loadFromDirectory;
+            SearchPatterns = searchPatterns == null || searchPatterns.Count == 0 ? new []{ "*.dll" } : searchPatterns;
             AssemblyFilters = assemblyFilters ?? AssemblyFilters.Empty;
             Assemblies = assemblies ?? Array.Empty<Assembly>();
             FilterByTypeFilters = filterByTypeFilters;

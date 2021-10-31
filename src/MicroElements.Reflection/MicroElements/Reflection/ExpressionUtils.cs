@@ -17,13 +17,16 @@ namespace MicroElements.Reflection
             var memberExpression = (MemberExpression)expression.Body;
             var property = (PropertyInfo)memberExpression.Member;
             var setMethod = property.GetSetMethod(nonPublic: true);
+            if (setMethod == null)
+                throw new InvalidOperationException($"Type {typeof(T)} should have writable property {property.Name}.");
 
             var parameterT = Expression.Parameter(typeof(T), "x");
             var parameterTProperty = Expression.Parameter(typeof(TProperty), "y");
 
+            var callExpression = Expression.Call(parameterT, setMethod, parameterTProperty);
             var setExpression =
                 Expression.Lambda<Action<T, TProperty>>(
-                    Expression.Call(parameterT, setMethod, parameterTProperty),
+                    callExpression,
                     parameterT,
                     parameterTProperty
                 );
@@ -46,8 +49,7 @@ namespace MicroElements.Reflection
             var objectArg = Expression.Parameter(typeof(object), "objInst");
             UnaryExpression objectArgAsT = Expression.Convert(objectArg, instanceType);
 
-            MethodCallExpression callExpression = Expression.Call(objectArgAsT, setMethod, parameterTProperty);
-
+            var callExpression = Expression.Call(objectArgAsT, setMethod, parameterTProperty);
             var setExpression =
                 Expression.Lambda<Action<object, TProperty>>(
                     callExpression,

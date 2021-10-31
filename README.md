@@ -21,6 +21,17 @@ This project is licensed under the MIT license. See the [LICENSE] file for more 
 
 - Trimmed version of JetBrains annotations used in MicroElements packages.
 - CodeContracts
+- IsExternalInit
 - Reflection
+- Collections
 
-Detailed info TDB
+
+## Design concepts
+
+- Designed for .Net Core so most libs uses .NetStandard 2.1
+- MicroElements uses modern language features (C#9) to reduce code size and improve readability.
+- Granular namespaces to reduce collision possibility. You can control usages till class level.
+- All source packages stores its code in one root `MicroElements` that keeps project clean.
+- MicroElements source code packages can reduce your `common libs` dependencies
+- Debugging is easy because you have full sources
+

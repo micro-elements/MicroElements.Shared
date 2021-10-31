@@ -262,15 +262,21 @@ namespace MicroElements.Reflection
 
             ICollection<string> messages = new List<string>();
 
-            Assembly[] assemblies = TypeLoader.LoadAssemblies(assemblySource, messages).ToArray();
+            IReadOnlyCollection<Assembly> assemblies = TypeLoader.LoadAssemblies(assemblySource, messages).ToArray();
+            IReadOnlyCollection<Type> types = TypeLoader.GetTypes(assemblies, typeSource.TypeFilters, messages);
 
-            TypeRegistration[] typeRegistrations = TypeLoader.GetTypes(assemblies, typeSource.TypeFilters, messages)
+            TypeRegistration[] typeRegistrations = types
                 .Select(type => new TypeRegistration(type, source: TypeRegistration.SourceType.AssemblyScan))
                 .Concat(typeSource.TypeRegistrations.NotNull())
+                .Distinct()
                 .ToArray();
 
             if (assemblySource.FilterByTypeFilters)
-                assemblies = typeRegistrations.Select(registration => registration.Type).Select(type => type.Assembly).Distinct().ToArray();
+                assemblies = typeRegistrations
+                    .Select(registration => registration.Type)
+                    .Select(type => type.Assembly)
+                    .Distinct()
+                    .ToArray();
 
             AssemblySource assemblySourceResolved = assemblySource.With(resultAssemblies: assemblies);
             TypeSource typeSourceResolved = typeSource.With(typeRegistrations: typeRegistrations);

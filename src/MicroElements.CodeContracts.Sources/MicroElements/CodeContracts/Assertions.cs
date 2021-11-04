@@ -9,15 +9,6 @@ namespace MicroElements.CodeContracts
 {
     /// <summary>
     /// CodeContracts Assertions.
-    ///
-    /// <para>If compilation fails add to project:
-    /// 
-    /// <![CDATA[
-    /// <LangVersion>9.0</LangVersion>
-    /// <Nullable>enable</Nullable>
-    /// ]]>
-    /// </para>
-    /// 
     /// </summary>
     internal static partial class Assertions
     {

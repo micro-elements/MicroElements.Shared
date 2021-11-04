@@ -12,4 +12,4 @@
 ### Added
 - NotNull extensions
 
-Full release notes can be found at: https://github.com/micro-elements/MicroElements.Shared/blob/master/src/MicroElements.Collections.Extensions.Sources/CHANGELOG.md
+Full release notes can be found at: https://github.com/micro-elements/MicroElements.Shared/blob/master/src/MicroElements.Collections.Sources/CHANGELOG.md

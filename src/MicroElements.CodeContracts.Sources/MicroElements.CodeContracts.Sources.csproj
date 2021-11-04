@@ -9,7 +9,7 @@
 
     <PackageId>MicroElements.CodeContracts.Sources</PackageId>
     <PackageVersion>1.0.0</PackageVersion>
-    <Description>MicroElements source only package: CodeContracts. Main methods: AssertArgumentNotNull.</Description>
+    <Description>MicroElements source code only package: CodeContracts. Main methods: AssertArgumentNotNull.</Description>
     <PackageTags>MicroElements CodeContracts</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>

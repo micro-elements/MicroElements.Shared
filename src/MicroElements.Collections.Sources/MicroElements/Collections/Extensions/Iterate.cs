@@ -1,4 +1,17 @@
-﻿using System;
+﻿#region License
+
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+#endregion
+#region Supressions
+
+#pragma warning disable
+// ReSharper disable CheckNamespace
+
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;

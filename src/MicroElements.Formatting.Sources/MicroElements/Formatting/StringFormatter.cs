@@ -18,11 +18,6 @@ namespace MicroElements.Formatting.StringFormatter
     internal static partial class StringFormatter
     {
         /// <summary>
-        /// Invariant format info. Uses '.' as decimal separator for floating point numbers.
-        /// </summary>
-        private static readonly NumberFormatInfo DefaultNumberFormatInfo = NumberFormatInfo.ReadOnly(new NumberFormatInfo { NumberDecimalSeparator = "." });
-
-        /// <summary>
         /// Default string formatting for most used types.
         /// </summary>
         /// <param name="value">Value to format.</param>
@@ -40,13 +35,13 @@ namespace MicroElements.Formatting.StringFormatter
                 return stringValue;
 
             if (value is double doubleNumber)
-                return doubleNumber.ToString(DefaultNumberFormatInfo);
+                return doubleNumber.ToString(NumberFormatInfo.InvariantInfo);
 
             if (value is float floatNumber)
-                return floatNumber.ToString(DefaultNumberFormatInfo);
+                return floatNumber.ToString(NumberFormatInfo.InvariantInfo);
 
             if (value is decimal decimalNumber)
-                return decimalNumber.ToString(DefaultNumberFormatInfo);
+                return decimalNumber.ToString(NumberFormatInfo.InvariantInfo);
 
             if (value is DateTime dateTime)
                 return dateTime == dateTime.Date ? $"{dateTime:yyyy-MM-dd}" : $"{dateTime:yyyy-MM-ddTHH:mm:ss}";
@@ -78,28 +73,31 @@ namespace MicroElements.Formatting.StringFormatter
         /// Formats enumeration of value as tuple: (value1, value2, ...).
         /// </summary>
         /// <param name="values">Values enumeration.</param>
-        /// <param name="fieldSeparator">Optional field separator.</param>
-        /// <param name="nullPlaceholder">Optional null placeholder.</param>
-        /// <param name="startSymbol">Start symbol. DefaultValue='('.</param>
-        /// <param name="endSymbol">End symbol. DefaultValue=')'.</param>
-        /// <param name="formatValue">Func to format object value to string representation.</param>
-        /// <param name="maxItems">Optional max items to render.</param>
-        /// <param name="maxTextLength">Limits max text length.</param>
+        /// <param name="separator">The value that uses to separate items. DefaultValue = ', '.</param>
+        /// <param name="nullPlaceholder">The value that renders if item is `null`. DefaultValue = `"null"`</param>
+        /// <param name="startSymbol">Start symbol. DefaultValue = '('.</param>
+        /// <param name="endSymbol">End symbol. DefaultValue = ')'.</param>
+        /// <param name="formatValue">Func that formats object value to string representation. By default uses `FormatValue`</param>
+        /// <param name="maxItems">The max number of items that will be formatted. By default not limited.</param>
+        /// <param name="maxTextLength">TMax result text length. Used to limit result text size. DefaultValue=`1024`.</param>
+        /// <param name="trimmedPlaceholder">The value that replaces trimmed part of sequence. DefaultValue = `"..."` </param>
         /// <returns>Formatted string.</returns>
         public static string FormatAsTuple(
             this IEnumerable? values,
-            string fieldSeparator = ", ",
+            string separator = ", ",
             string nullPlaceholder = "null",
             string startSymbol = "(",
             string endSymbol = ")",
             Func<object, string?>? formatValue = null,
             int? maxItems = null,
-            int maxTextLength = 1028)
+            int maxTextLength = 1024,
+            string trimmedPlaceholder = "...")
         {
-            fieldSeparator.AssertArgumentNotNull(nameof(fieldSeparator));
+            separator.AssertArgumentNotNull(nameof(separator));
             nullPlaceholder.AssertArgumentNotNull(nameof(nullPlaceholder));
             startSymbol.AssertArgumentNotNull(nameof(startSymbol));
             endSymbol.AssertArgumentNotNull(nameof(endSymbol));
+            trimmedPlaceholder.AssertArgumentNotNull(nameof(trimmedPlaceholder));
 
             formatValue ??= value => value.FormatValue();
 
@@ -111,20 +109,26 @@ namespace MicroElements.Formatting.StringFormatter
                 int count = 1;
                 foreach (var value in values)
                 {
-                    if (stringBuilder.Length > maxTextLength || (maxItems.HasValue && count > maxItems.Value))
+                    if (stringBuilder.Length > maxTextLength + trimmedPlaceholder.Length + endSymbol.Length)
+                    {
+                        stringBuilder.Length = maxTextLength - (trimmedPlaceholder.Length + endSymbol.Length);
+                        stringBuilder.Append(trimmedPlaceholder).Append(separator);
                         break;
+                    }
+                    if (count > maxItems)
+                    {
+                        stringBuilder.Append(trimmedPlaceholder).Append(separator);
+                        break;
+                    }
 
                     string text = value != null ? formatValue(value) ?? nullPlaceholder : nullPlaceholder;
-                    stringBuilder.Append($"{text}{fieldSeparator}");
+                    stringBuilder.Append(text).Append(separator);
 
                     count++;
                 }
 
-                if (stringBuilder.Length > maxTextLength || (maxItems.HasValue && count > maxItems.Value))
-                    stringBuilder.Append($"...{fieldSeparator}");
-
-                if (stringBuilder.Length > fieldSeparator.Length)
-                    stringBuilder.Length -= fieldSeparator.Length;
+                if (stringBuilder.Length > separator.Length)
+                    stringBuilder.Length -= separator.Length;
             }
 
             stringBuilder.Append(endSymbol);

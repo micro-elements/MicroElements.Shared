@@ -1,5 +1,15 @@
-﻿// Copyright (c) MicroElements. All rights reserved.
+﻿#region License
+
+// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+#endregion
+#region Supressions
+
+#pragma warning disable
+// ReSharper disable CheckNamespace
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -14,12 +24,10 @@ namespace MicroElements.Collections.Extensions.NotNull
     /// Returns not null (empty) enumeration if input is null.
     /// 
     /// ```csharp
-    /// string? GetFirstName(IEnumerable<string>? names)
-    /// {
-    ///     return names
+    /// string? GetFirstValue(IEnumerable<string>? optionalValues) =>
+    ///     optionalValues
     ///         .NotNull()
     ///         .FirstOrDefault();
-    /// }
     /// ```
     /// ]]>
     /// </readme>

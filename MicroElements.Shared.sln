@@ -13,11 +13,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F224D23C
 	ProjectSection(SolutionItems) = preProject
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "other", "other", "{4AFCFB68-71A9-482A-BFAA-0E08FE08A44C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution_items", "solution_items", "{4AFCFB68-71A9-482A-BFAA-0E08FE08A44C}"
 	ProjectSection(SolutionItems) = preProject
 		CHANGELOG.md = CHANGELOG.md
 		common.props = common.props
 		src\Directory.Build.props = src\Directory.Build.props
+		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject

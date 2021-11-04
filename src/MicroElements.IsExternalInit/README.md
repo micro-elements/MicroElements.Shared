@@ -1,5 +1,5 @@
 ﻿# MicroElements.IsExternalInit
-Records support for dotnet versions before .Net 5
+Support for record type for dotnet versions before .Net 5
 
 Source only package does not forces binary reference on it. Just add package and use as code.
 
@@ -18,4 +18,5 @@ IsExternalInit is compatible with the following target framework range:
 
 ## Compiler Constants
 
-MicroElements.IsExternalInit is compatible with `ISEXTERNALINIT_DISABLE` compiler constant that allows to disable IsExternalInit class from compilation.
+* `ME_EXTERNALINIT_ENABLE` - enables IsExternalInit class regardless other conditions
+* `ME_EXTERNALINIT_DISABLE` - disables IsExternalInit

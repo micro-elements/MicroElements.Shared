@@ -1,5 +1,15 @@
-﻿// Copyright (c) MicroElements. All rights reserved.
+﻿#region License
+
+// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+#endregion
+#region Supressions
+
+#pragma warning disable
+// ReSharper disable CheckNamespace
+
+#endregion
 
 using System;
 using System.Collections.Concurrent;
@@ -9,6 +19,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MicroElements.Collections.TwoLayerCache
 {
     /// <summary id="TwoLayerCache">
+    /// <![CDATA[
     /// ### TwoLayerCache
     /// Represents ThreadSafe cache that holds only limited number of items. Can be used as drop in replacement for `ConcurrentDictionary`.
     ///
@@ -21,6 +32,7 @@ namespace MicroElements.Collections.TwoLayerCache
     /// - GetValue first checks hot cache. If value not found in hot cache than cold cache uses for search.
     /// - If value exists in cold cache than item moves to hot cache.
     /// - If hot cache exceeds item limit then hot cache became cold cache and new hot cache creates.
+    /// ]]>
     /// </summary>
     /// <typeparam name="TKey">Key type.</typeparam>
     /// <typeparam name="TValue">Value type.</typeparam>

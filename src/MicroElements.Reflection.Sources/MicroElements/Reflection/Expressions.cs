@@ -6,7 +6,9 @@ using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 
+#pragma warning disable
 // ReSharper disable once CheckNamespace
+
 namespace MicroElements.Reflection.Expressions
 {
     /// <summary>Represents compiled property getter and setter.</summary>
@@ -78,10 +80,45 @@ namespace MicroElements.Reflection.Expressions
         /// <summary>
         /// Mutates target object using cached property expression.
         /// </summary>
-        /// <returns>The same object.</returns>
+        /// <returns>The same object (mutated).</returns>
         public static T Mutate<T, TProperty>(this T target, Expression<Func<T, TProperty>> expression, TProperty value)
         {
             Cached.GetPropertyGetterAndSetter(expression).Setter(target, value);
+            return target;
+        }
+
+        /// <summary>
+        /// <![CDATA[
+        /// ### NotNull
+        /// Mutates target object using cached property expression.
+        /// 
+        /// ```csharp
+        /// person.Mutate(p => Name, "Alex");
+        /// person.Mutate(p => Name, oldValue => "Alex", oldValue => oldValue is null);
+        /// ```
+        /// ]]>
+        /// </summary>
+        /// <typeparam name="T">Type to mutate.</typeparam>
+        /// <typeparam name="TProperty">Property type.</typeparam>
+        /// <param name="target">Object to mutate.</param>
+        /// <param name="expression">Property expression.</param>
+        /// <param name="map">Function that accepts old value and returns new value.</param>
+        /// <param name="shouldMutate">Predicate that checks whether the target object should be mutated depending on old property value.</param>
+        /// <returns>The same object (mutated).</returns>
+        public static T Mutate<T, TProperty>(
+            this T target,
+            Expression<Func<T, TProperty>> expression,
+            Func<TProperty, TProperty> map,
+            Func<TProperty, bool>? shouldMutate = null)
+        {
+            var getterAndSetter = Cached.GetPropertyGetterAndSetter(expression);
+            var value = getterAndSetter.Getter(target);
+            if (shouldMutate == null || shouldMutate.Invoke(value))
+            {
+                var newValue = map(value);
+                getterAndSetter.Setter(target, newValue);
+            }
+
             return target;
         }
     }
@@ -93,7 +130,7 @@ namespace MicroElements.Reflection.Expressions
         {
             private static class ExpressionCache<T, TProperty>
             {
-                internal static readonly ConcurrentDictionary<string, PropertyReflection<T, TProperty>> Cache = new();
+                internal static readonly ConcurrentDictionary<string, PropertyReflection<T, TProperty>> Cache = new ();
             }
 
             /// <summary>

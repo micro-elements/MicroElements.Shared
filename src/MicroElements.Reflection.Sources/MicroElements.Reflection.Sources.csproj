@@ -22,7 +22,7 @@
   <!--Dependencies-->
   <ItemGroup>
     <PackageReference Include="MicroElements.CodeContracts.Sources" Version="1.0.0" IncludeAssets="all" />
-    <PackageReference Include="MicroElements.IsExternalInit" Version="1.0.0" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.IsExternalInit" Version="1.1.0" IncludeAssets="all" />
   </ItemGroup>
 
 </Project>

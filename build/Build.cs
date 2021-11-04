@@ -1,27 +1,25 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.Build.Tasks.Deployment.ManifestUtilities;
 using Nuke.Common;
 using Nuke.Common.CI;
-using Nuke.Common.CI.TeamCity;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
-using Nuke.Common.Tools.Coverlet;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Logger;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
+using MemberExpression = System.Linq.Expressions.MemberExpression;
 
 #region Supressions
 
@@ -188,24 +186,54 @@ partial class Build : NukeBuild, ITest
                 }
 
                 var project = Solution.GetProject(projectToBuild);
-                DotNetBuild(s => s
-                    .SetProjectFile(project)
-                    .SetConfiguration(Configuration)
-                    .EnableDeterministic()
-                    
-                    .SetCopyright($"Copyright (c) MicroElements {DateTime.Today:yyyy}")
-                    .SetAuthors("alexey.petriashev, MicroElements".EncodeComma())
-                    .SetPackageIconUrl("https://raw.githubusercontent.com/micro-elements/MicroElements/master/image/logo_rounded.png")
+                if (project is null)
+                {
+                    Error($"Project '{projectToBuild}' is not found.");
+                    continue;
+                }
 
-                    .SetRepositoryType("git")
-                    .SetRepositoryUrl(GitRepository.HttpsUrl)
-                    .SetPackageProjectUrl($"https://github.com/{GitRepository.Identifier}")
-                    .SetProperty("RepositoryBranch", GitRepository.Branch)
-                    .SetProperty("RepositoryCommit", GitRepository.Commit)
+                var projectConventions = new ProjectConventions(project, Configuration);
 
-                    .ResetPackageLicenseUrl()
-                    .SetProperty("PackageLicenseExpression", "MIT")
-                );
+                var changelogFile = project.Directory / "CHANGELOG.md";
+                string? changelogContent = null;
+                if (FileExists(changelogFile))
+                    changelogContent = changelogFile.ReadChangeLog().EncodeMsBuildProperty();
+
+                for (int i = 0; i < 2; i++)
+                {
+                    DotNetBuild(s => s
+                        .SetProjectFile(project)
+                        .SetConfiguration(Configuration)
+                        .EnableDeterministic()
+                        .SetCopyright($"Copyright (c) MicroElements {DateTime.Today:yyyy}")
+                        .SetAuthors("alexey.petriashev, MicroElements".EncodeMsBuildProperty())
+                        .SetPackageIconUrl("https://raw.githubusercontent.com/micro-elements/MicroElements/master/image/logo_rounded.png")
+
+                        // PackageReleaseNotes
+                        .If(() => changelogContent != null,
+                            settings => settings.SetPackageReleaseNotes(changelogContent))
+
+                        // Repo settings
+                        .SetRepositoryType("git")
+                        .SetRepositoryUrl(GitRepository.HttpsUrl)
+                        .SetPackageProjectUrl($"https://github.com/{GitRepository.Identifier}")
+                        .SetProperty("RepositoryBranch", GitRepository.Branch)
+                        .SetProperty("RepositoryCommit", GitRepository.Commit)
+
+                        // License
+                        .ResetPackageLicenseUrl()
+                        .SetProperty("PackageLicenseExpression", "MIT"));
+
+                    // Render README from template (should be after build because uses xml documentation)
+                    var isReadmeChanged = Templates.TryRenderReadme(projectConventions);
+                    if (isReadmeChanged)
+                    {
+                        // Build one more time because README should be injected in result package.
+                        continue;
+                    }
+
+                    break;
+                }
             }
         });
 
@@ -277,10 +305,37 @@ public static class BuildExtensions
     public static bool IsMatchesPattern(this string item, string? pattern) => string.IsNullOrWhiteSpace(pattern) || pattern.Contains(item, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Encodes comma as special symbol. Comma in property fails build.
-    /// See: https://github.com/nuke-build/nuke/issues/497
+    /// Encodes MSBuild special characters
+    /// See: https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-special-characters?view=vs-2019
     /// </summary>
-    public static string EncodeComma(this string value) => value.Replace(",", "%2c");
+    public static string EncodeMsBuildProperty(this string value) => value
+        .Replace("%", "%25")
+        .Replace("$", "%24")
+        .Replace("@", "%40")
+        .Replace("'", "%27")
+        .Replace("(", "%28")
+        .Replace(")", "%29")
+        .Replace(";", "%3B")
+        .Replace(",", "%2C")
+        .Replace(" ", "%20")
+        .Replace("\r", "%0D")
+        .Replace("\n", "%0A")
+        .Replace("\"", "%22");
+
+    public static DotNetBuildSettings If(this DotNetBuildSettings settings, Func<bool> predicate, Func<DotNetBuildSettings, DotNetBuildSettings> configure)
+    {
+        if (predicate())
+            return configure(settings);
+        return settings;
+    }
+
+    public static string ReadChangeLog(this AbsolutePath changeLogFile)
+    {
+        var releaseNotes = File.ReadAllText(changeLogFile);
+        return releaseNotes;
+    }
+
+    public static bool FileExists(this AbsolutePath? absolutePath) => File.Exists(absolutePath);
 }
 
 [TypeConverter(typeof(TypeConverter<Configuration>))]
@@ -290,6 +345,36 @@ public class Configuration : Enumeration
     public static Configuration Release = new Configuration { Value = nameof(Release) };
 
     public static implicit operator string(Configuration configuration) => configuration.Value;
+}
+
+public class ProjectConventions
+{
+    public Project Project { get; }
+
+    public Configuration Configuration { get; }
+
+    public ProjectConventions(Project project, Configuration configuration)
+    {
+        Project = project;
+        Configuration = configuration;
+    }
+
+    public AbsolutePath SolutionDirectory => Project.Solution.Directory;
+
+    public AbsolutePath SourceDirectory => SolutionDirectory / "src";
+
+    public AbsolutePath TestsDirectory => SolutionDirectory / "tests";
+
+    public AbsolutePath ArtifactsDirectory => SolutionDirectory / "artifacts";
+
+    public AbsolutePath TestResultsDirectory => ArtifactsDirectory / "test-results";
+
+    public AbsolutePath XmlDocumentationFile => Project.Directory / "bin" / Configuration / Project.GetTargetFrameworks()?.First() / $"{Project.Name}.xml";
+
+    public AbsolutePath ReadmeFile => Project.Directory / "README.md";
+
+    public AbsolutePath ReadmeTemplateFile => Project.Directory / "README.md.liquid";
+
 }
 
 #endregion

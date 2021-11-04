@@ -6,6 +6,14 @@ using Xunit;
 
 namespace MicroElements.Shared.Tests.Collections
 {
+    public class NotNullExample
+    {
+        string? GetFirstValue(IEnumerable<string>? optionalValues) =>
+            optionalValues
+                .NotNull()
+                .FirstOrDefault();
+    }
+
     public class NotNullTests
     {
         [Fact]

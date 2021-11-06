@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -6,6 +7,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
+using MicroElements.Build;
+using MicroElements.Metadata;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.Execution;
@@ -39,7 +42,7 @@ using MemberExpression = System.Linq.Expressions.MemberExpression;
 
 partial class Build
 {
-    public static int Main() => Execute<Build>(x => x.BuildFromVS);
+    public static int Main() => Execute<Build>(x => x.BuildDocs);
 
     Target BuildFromVS => _ => _
         .DependsOn(BuildAndPack, Test)
@@ -48,6 +51,10 @@ partial class Build
             // To properly reload projects
             Solution.Save();
         });
+
+    Target BuildDocs => _ => _
+        .DependsOn(Docs)
+        .Executes();
 
     Target GitHubActions => _ => _
         .DependsOn(BuildAndPack, Test)
@@ -103,11 +110,29 @@ partial class Build : NukeBuild, ITest
 
     [Solution] readonly Solution Solution = null!;
     [GitRepository] readonly GitRepository GitRepository = null!;
+    BuildContext Context = null!;
 
-    AbsolutePath SourceDirectory => RootDirectory / "src";
-    AbsolutePath TestsDirectory => RootDirectory / "tests";
-    AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
-    AbsolutePath TestResultsDirectory => ArtifactsDirectory / "test-results";
+    /// <inheritdoc />
+    protected override void OnBuildInitialized()
+    {
+        base.OnBuildInitialized();
+
+        Context = new()
+        {
+            Context = new(StringComparer.OrdinalIgnoreCase),
+            SolutionConventions = new SolutionConventions(Solution)
+        };
+    }
+
+    public AbsolutePath SolutionDirectory => RootDirectory;
+
+    public AbsolutePath SourceDirectory => SolutionDirectory / "src";
+
+    public AbsolutePath TestsDirectory => SolutionDirectory / "tests";
+
+    public AbsolutePath ArtifactsDirectory => SolutionDirectory / "artifacts";
+
+    public AbsolutePath TestResultsDirectory => ArtifactsDirectory / "test-results";
 
     Target DumpArguments => _ => _
         .Before(Clean)
@@ -163,6 +188,7 @@ partial class Build : NukeBuild, ITest
         Info($"{propertyName}: {textValue}");
     }
 
+
     Target Clean => _ => _
         .Executes(() =>
         {
@@ -176,6 +202,8 @@ partial class Build : NukeBuild, ITest
         .DependsOn(DumpArguments, Clean)
         .Executes(() =>
         {
+            var projectConventionsList = new List<ProjectConventions>();
+
             foreach (var projectToBuild in ProjectsToBuild)
             {
                 bool shouldBuild = projectToBuild.IsMatchesPattern(BUILD_PATTERN);
@@ -193,6 +221,7 @@ partial class Build : NukeBuild, ITest
                 }
 
                 var projectConventions = new ProjectConventions(project, Configuration);
+                projectConventionsList.Add(projectConventions);
 
                 var changelogFile = project.Directory / "CHANGELOG.md";
                 string? changelogContent = null;
@@ -224,8 +253,10 @@ partial class Build : NukeBuild, ITest
                         .ResetPackageLicenseUrl()
                         .SetProperty("PackageLicenseExpression", "MIT"));
 
+                    
+
                     // Render README from template (should be after build because uses xml documentation)
-                    var isReadmeChanged = Templates.TryRenderReadme(projectConventions);
+                    var isReadmeChanged = Templates.TryRenderProjectReadme(Context, projectConventions);
                     if (isReadmeChanged)
                     {
                         // Build one more time because README should be injected in result package.
@@ -235,6 +266,8 @@ partial class Build : NukeBuild, ITest
                     break;
                 }
             }
+
+            Context = Context with {ProjectConventions = projectConventionsList};
         });
 
     Target Test => _ => _
@@ -254,6 +287,14 @@ partial class Build : NukeBuild, ITest
                         .SetLoggers("trx")
                         .SetResultsDirectory(TestResultsDirectory)));
             }
+        });
+
+    Target Docs => _ => _
+        .DependsOn(BuildAndPack)
+        .Executes(() =>
+        {
+            // Render README from template (should be after build because uses xml documentation)
+            var isReadmeChanged = Templates.TryRenderSharedReadme(Context);
         });
 
     Target Push => _ => _
@@ -347,7 +388,40 @@ public class Configuration : Enumeration
     public static implicit operator string(Configuration configuration) => configuration.Value;
 }
 
-public class ProjectConventions
+public record BuildContext
+{
+    public Dictionary<string, object> Context { get; init; }
+
+    public SolutionConventions SolutionConventions { get; init; }
+
+    public IReadOnlyCollection<ProjectConventions> ProjectConventions { get; init; }
+}
+
+public class SolutionConventions : IMetadataProvider
+{
+    public Solution Solution { get; }
+
+    public SolutionConventions(Solution solution)
+    {
+        Solution = solution;
+    }
+
+    public AbsolutePath SolutionDirectory => Solution.Directory;
+
+    public AbsolutePath SourceDirectory => SolutionDirectory / "src";
+
+    public AbsolutePath TestsDirectory => SolutionDirectory / "tests";
+
+    public AbsolutePath ArtifactsDirectory => SolutionDirectory / "artifacts";
+
+    public AbsolutePath TestResultsDirectory => ArtifactsDirectory / "test-results";
+
+    public AbsolutePath ReadmeFile => SolutionDirectory / "README.md";
+
+    public AbsolutePath ReadmeTemplateFile => SolutionDirectory / "README.md.liquid";
+}
+
+public class ProjectConventions : IMetadataProvider
 {
     public Project Project { get; }
 
@@ -359,22 +433,13 @@ public class ProjectConventions
         Configuration = configuration;
     }
 
-    public AbsolutePath SolutionDirectory => Project.Solution.Directory;
+    public AbsolutePath ProjectDirectory => Project.Directory;
 
-    public AbsolutePath SourceDirectory => SolutionDirectory / "src";
+    public AbsolutePath XmlDocumentationFile => ProjectDirectory / "bin" / Configuration / Project.GetTargetFrameworks()?.First() / $"{Project.Name}.xml";
 
-    public AbsolutePath TestsDirectory => SolutionDirectory / "tests";
+    public AbsolutePath ReadmeFile => ProjectDirectory / "README.md";
 
-    public AbsolutePath ArtifactsDirectory => SolutionDirectory / "artifacts";
-
-    public AbsolutePath TestResultsDirectory => ArtifactsDirectory / "test-results";
-
-    public AbsolutePath XmlDocumentationFile => Project.Directory / "bin" / Configuration / Project.GetTargetFrameworks()?.First() / $"{Project.Name}.xml";
-
-    public AbsolutePath ReadmeFile => Project.Directory / "README.md";
-
-    public AbsolutePath ReadmeTemplateFile => Project.Directory / "README.md.liquid";
-
+    public AbsolutePath ReadmeTemplateFile => ProjectDirectory / "README.md.liquid";
 }
 
 #endregion

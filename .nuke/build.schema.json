@@ -80,8 +80,10 @@
             "type": "string",
             "enum": [
               "BuildAndPack",
+              "BuildDocs",
               "BuildFromVS",
               "Clean",
+              "Docs",
               "DumpArguments",
               "GitHubActions",
               "GitHubActionsPublish",
@@ -101,8 +103,10 @@
             "type": "string",
             "enum": [
               "BuildAndPack",
+              "BuildDocs",
               "BuildFromVS",
               "Clean",
+              "Docs",
               "DumpArguments",
               "GitHubActions",
               "GitHubActionsPublish",

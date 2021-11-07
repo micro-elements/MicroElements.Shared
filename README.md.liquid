@@ -1,14 +1,14 @@
-{% assign projects_root = "https://github.com/micro-elements/MicroElements.Shared/blob/master/src" -%}
-{% assign projects = "MicroElements.CodeContracts.Sources,MicroElements.Collections.Sources,MicroElements.Formatting.Sources,MicroElements.IsExternalInit,MicroElements.Reflection.Sources" | split: ',' -%}
+{% assign projects_root = "https://github.com/micro-elements/MicroElements.Shared/tree/master/src" -%}
+{% assign projects = "MicroElements.CodeContracts.Sources,MicroElements.IsExternalInit,MicroElements.Collections.Sources,MicroElements.Formatting.Sources,MicroElements.Reflection.Sources" | split: ',' -%}
 {% template project_info, project, root -%}
+___
 ### {{project}}
-
-{% project_property2 'Description' project: project %}
-
-[{{project}}]({{root}}/{{project}}/README.md)
-
-[![NuGetVersion](https://img.shields.io/nuget/v/{{project}}.svg)](https://www.nuget.org/packages/{{project}})
-![NuGetDownloads](https://img.shields.io/nuget/dt/{{project}}.svg)
+|   |   |
+--- | ---
+Name | {{project}}
+Description | {% project_property2 'Description' project: project %}
+Github | [{{root}}/{{project}}]({{root}}/{{project}})
+Status | [![NuGetVersion](https://img.shields.io/nuget/v/{{project}}.svg)](https://www.nuget.org/packages/{{project}}) ![NuGetDownloads](https://img.shields.io/nuget/dt/{{project}}.svg)
 {% endtemplate -%}
 
 # MicroElements.Shared
@@ -17,14 +17,6 @@ Provides microelements shared components as sources. The purpose of this lib is 
 ## Statuses
 [![License](https://img.shields.io/github/license/micro-elements/MicroElements.Shared.svg)](https://raw.githubusercontent.com/micro-elements/MicroElements.Shared/master/LICENSE)
 [![Gitter](https://img.shields.io/gitter/room/micro-elements/MicroElements.Shared.svg)](https://gitter.im/micro-elements/MicroElements.Shared)
-
-## Components
-
-{% render_template project_info, projects[0], projects_root %}
-{% render_template project_info, projects[1], projects_root %}
-{% render_template project_info, projects[2], projects_root %}
-{% render_template project_info, projects[3], projects_root %}
-{% render_template project_info, projects[4], projects_root %}
 
 ## Design concepts
 
@@ -36,12 +28,9 @@ Provides microelements shared components as sources. The purpose of this lib is 
 - Debugging is easy because you have full sources
 
 ## Components
-
-- Trimmed version of JetBrains annotations used in MicroElements packages.
-- CodeContracts
-- IsExternalInit
-- Reflection
-- Collections
+{% for project in projects -%}
+{% render_template project_info, project, projects_root %}
+{% endfor -%}
 
 ## License
 This project is licensed under the MIT license. See the [LICENSE] file for more info.

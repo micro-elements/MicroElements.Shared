@@ -6,6 +6,7 @@
 // ReSharper disable once CheckNamespace
 #endregion
 
+#if !ME_JETBRAINS_ANNOTATIONS_DISABLE
 // ****************************************************************//
 // This is very limited subset of JetBrains Annotation attributes. //
 // ****************************************************************//
@@ -34,7 +35,7 @@ namespace JetBrains.Annotations
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     internal sealed class LinqTunnelAttribute : Attribute { }
-    
+
     /// <summary>
     /// Indicates that IEnumerable passed as a parameter is not enumerated.
     /// Use this annotation to suppress the 'Possible multiple enumeration of IEnumerable' inspection.
@@ -54,3 +55,4 @@ namespace JetBrains.Annotations
     [AttributeUsage(AttributeTargets.Parameter)]
     internal sealed class NoEnumerationAttribute : Attribute { }
 }
+#endif

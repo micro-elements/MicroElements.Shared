@@ -21,7 +21,7 @@
 
   <!--Dependencies-->
   <ItemGroup>
-    <PackageReference Include="MicroElements.JetBrains.Sources" Version="1.0.0" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.JetBrains.Sources" Version="1.1.0" IncludeAssets="all" />
   </ItemGroup>
 
 </Project>

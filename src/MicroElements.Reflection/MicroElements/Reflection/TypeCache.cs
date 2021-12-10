@@ -97,7 +97,7 @@ namespace MicroElements.Reflection
         public IReadOnlyDictionary<Type, string> AliasForType { get; }
 
         /// <summary>
-        /// Creates type cache.
+        /// Initializes a new instance of the <see cref="TypeCacheDefault"/> class.
         /// </summary>
         /// <param name="assemblySource">Assembly filters that was used to get <see cref="Assemblies"/>.</param>
         /// <param name="typeSource">Type filters that was used to get <see cref="Types"/>.</param>
@@ -243,7 +243,29 @@ namespace MicroElements.Reflection
                     .ToArray()));
 
         private static IEnumerable<TypeRegistration> NodaTypeRegistrations(string alias) =>
-            TypeRegistration.TypeAndNullableTypeRegistrations($"NodaTime.{alias}", alias);
+            TypeAndNullableTypeRegistrations($"NodaTime.{alias}", alias);
+
+        /// <summary>
+        /// Returns <see cref="TypeRegistration"/> by type FullName with optional alias.
+        /// Also returns nullable type registration for this type if its a value type.
+        /// </summary>
+        /// <param name="fullName">Type FullName.</param>
+        /// <param name="alias">Type alias.</param>
+        /// <param name="typeCache">Optional type cache which contains searching type. If not set then <see cref="TypeCache.Default"/> will be used.</param>
+        /// <returns>Enumeration of <see cref="TypeRegistration"/>. Can be empty if type was not found.</returns>
+        public static IEnumerable<TypeRegistration> TypeAndNullableTypeRegistrations(string fullName, string? alias = null, ITypeCache? typeCache = null)
+        {
+            Type? type = (typeCache ?? TypeCache.Default.Value).GetByAliasOrFullName(fullName);
+            if (type != null)
+            {
+                yield return new TypeRegistration(type, alias);
+                if (type.IsValueType)
+                {
+                    Type nullableType = typeof(Nullable<>).MakeGenericType(type);
+                    yield return new TypeRegistration(nullableType, alias + "?");
+                }
+            }
+        }
 
         /// <summary>
         /// Creates <see cref="ITypeCache"/> by <see cref="AssemblySource"/> and <see cref="TypeSource"/>.

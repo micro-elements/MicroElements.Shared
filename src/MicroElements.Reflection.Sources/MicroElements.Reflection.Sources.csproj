@@ -8,7 +8,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
 
     <PackageId>MicroElements.Reflection.Sources</PackageId>
-    <PackageVersion>1.1.0</PackageVersion>
+    <PackageVersion>1.2.0</PackageVersion>
     <Description>MicroElements source only package: Reflection. Classes: TypeExtensions, TypeCheck, ObjectExtensions, Expressions, CodeCompiler.</Description>
     <PackageTags>MicroElements Reflection Expressions</PackageTags>
 
@@ -21,7 +21,8 @@
 
   <!--Dependencies-->
   <ItemGroup>
-    <PackageReference Include="MicroElements.CodeContracts.Sources" Version="1.0.0" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.Collections.Sources" Version="1.2.0" PrivateAssets="all" />
+    <PackageReference Include="MicroElements.Formatting.Sources" Version="1.0.0" PrivateAssets="all" />
     <PackageReference Include="MicroElements.IsExternalInit" Version="1.1.0" IncludeAssets="all" />
   </ItemGroup>
 

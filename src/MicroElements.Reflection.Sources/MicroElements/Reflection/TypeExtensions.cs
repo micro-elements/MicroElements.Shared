@@ -6,6 +6,9 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using MicroElements.CodeContracts;
 
+#pragma warning disable
+// ReSharper disable once CheckNamespace
+
 namespace MicroElements.Reflection.TypeExtensions
 {
     /// <summary>

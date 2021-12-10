@@ -1,5 +1,8 @@
 ﻿using MicroElements.Reflection.TypeExtensions;
 
+#pragma warning disable
+// ReSharper disable once CheckNamespace
+
 namespace MicroElements.Reflection.TypeCheck
 {
     /// <summary>

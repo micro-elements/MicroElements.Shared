@@ -169,7 +169,7 @@ namespace MicroElements.Reflection
         public IReadOnlyCollection<string>? ExcludePatterns { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AssemblySource"/> class.
+        /// Initializes a new instance of the <see cref="AssemblyFilters"/> class.
         /// </summary>
         /// <param name="includePatterns"><see cref="Assembly.FullName"/> wildcard include patterns.</param>
         /// <param name="excludePatterns"><see cref="Assembly.FullName"/> wildcard exclude patterns.</param>
@@ -353,7 +353,7 @@ namespace MicroElements.Reflection
         public IReadOnlyCollection<string>? FullNameExcludes { get; }
 
         /// <summary>
-        /// Creates new instance of <see cref="TypeSource"/> class.
+        /// Initializes a new instance of the <see cref="TypeFilters"/> class.
         /// </summary>
         /// <param name="isPublic">Include only public types.</param>
         /// <param name="fullNameIncludes">Include types that <see cref="Type.FullName"/> matches filters.</param>
@@ -432,7 +432,7 @@ namespace MicroElements.Reflection
         public IReadOnlyCollection<TypeRegistration> TypeRegistrations { get; }
 
         /// <summary>
-        /// Creates new instance of <see cref="TypeSource"/> class.
+        /// Initializes a new instance of the <see cref="TypeSource"/> class.
         /// </summary>
         /// <param name="typeFilters">Filters to filter types.</param>
         /// <param name="typeRegistrations">User provided registrations.</param>
@@ -546,28 +546,6 @@ namespace MicroElements.Reflection
             Type = type;
             Alias = alias;
             Source = source;
-        }
-
-        /// <summary>
-        /// Returns <see cref="TypeRegistration"/> by type FullName with optional alias.
-        /// Also returns nullable type registration for this type if its a value type.
-        /// </summary>
-        /// <param name="fullName">Type FullName.</param>
-        /// <param name="alias">Type alias.</param>
-        /// <param name="typeCache">Optional type cache which contains searching type. If not set then <see cref="TypeCache.Default"/> will be used.</param>
-        /// <returns>Enumeration of <see cref="TypeRegistration"/>. Can be empty if type was not found.</returns>
-        public static IEnumerable<TypeRegistration> TypeAndNullableTypeRegistrations(string fullName, string? alias = null, ITypeCache? typeCache = null)
-        {
-            Type? type = (typeCache ?? TypeCache.Default.Value).GetByAliasOrFullName(fullName);
-            if (type != null)
-            {
-                yield return new TypeRegistration(type, alias);
-                if (type.IsValueType)
-                {
-                    Type nullableType = typeof(Nullable<>).MakeGenericType(type);
-                    yield return new TypeRegistration(nullableType, alias + "?");
-                }
-            }
         }
     }
 

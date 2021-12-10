@@ -24,7 +24,6 @@ Description | MicroElements source code only package: CodeContracts. Main method
 Github | [https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.CodeContracts.Sources](https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.CodeContracts.Sources)
 Status | [![NuGetVersion](https://img.shields.io/nuget/v/MicroElements.CodeContracts.Sources.svg)](https://www.nuget.org/packages/MicroElements.CodeContracts.Sources) ![NuGetDownloads](https://img.shields.io/nuget/dt/MicroElements.CodeContracts.Sources.svg)
 
-
 ___
 ### MicroElements.IsExternalInit
 |   |   |
@@ -34,16 +33,14 @@ Description | MicroElements source code only package: IsExternalInit. Record sup
 Github | [https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.IsExternalInit](https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.IsExternalInit)
 Status | [![NuGetVersion](https://img.shields.io/nuget/v/MicroElements.IsExternalInit.svg)](https://www.nuget.org/packages/MicroElements.IsExternalInit) ![NuGetDownloads](https://img.shields.io/nuget/dt/MicroElements.IsExternalInit.svg)
 
-
 ___
 ### MicroElements.Collections.Sources
 |   |   |
 --- | ---
 Name | MicroElements.Collections.Sources
-Description | MicroElements source only package: Collection extensions: NotNull, Iterate. Special collections: TwoLayerCache.
+Description | MicroElements source only package: Collection extensions: NotNull, Iterate, Materialize. Special collections: TwoLayerCache.
 Github | [https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.Collections.Sources](https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.Collections.Sources)
 Status | [![NuGetVersion](https://img.shields.io/nuget/v/MicroElements.Collections.Sources.svg)](https://www.nuget.org/packages/MicroElements.Collections.Sources) ![NuGetDownloads](https://img.shields.io/nuget/dt/MicroElements.Collections.Sources.svg)
-
 
 ___
 ### MicroElements.Formatting.Sources
@@ -54,7 +51,6 @@ Description | MicroElements source only package: Formatting. Main methods: Forma
 Github | [https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.Formatting.Sources](https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.Formatting.Sources)
 Status | [![NuGetVersion](https://img.shields.io/nuget/v/MicroElements.Formatting.Sources.svg)](https://www.nuget.org/packages/MicroElements.Formatting.Sources) ![NuGetDownloads](https://img.shields.io/nuget/dt/MicroElements.Formatting.Sources.svg)
 
-
 ___
 ### MicroElements.Reflection.Sources
 |   |   |
@@ -63,7 +59,6 @@ Name | MicroElements.Reflection.Sources
 Description | MicroElements source only package: Reflection. Classes: TypeExtensions, TypeCheck, ObjectExtensions, Expressions, CodeCompiler.
 Github | [https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.Reflection.Sources](https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.Reflection.Sources)
 Status | [![NuGetVersion](https://img.shields.io/nuget/v/MicroElements.Reflection.Sources.svg)](https://www.nuget.org/packages/MicroElements.Reflection.Sources) ![NuGetDownloads](https://img.shields.io/nuget/dt/MicroElements.Reflection.Sources.svg)
-
 
 ## License
 This project is licensed under the MIT license. See the [LICENSE] file for more info.

@@ -8,9 +8,9 @@
     <TargetFramework>netstandard2.1</TargetFramework>
 
     <PackageId>MicroElements.Collections.Sources</PackageId>
-    <PackageVersion>1.1.0</PackageVersion>
-    <Description>MicroElements source only package: Collection extensions: NotNull, Iterate. Special collections: TwoLayerCache.</Description>
-    <PackageTags>MicroElements NotNull collections functional TwoLayerCache</PackageTags>
+    <PackageVersion>1.2.0</PackageVersion>
+    <Description>MicroElements source only package: Collection extensions: NotNull, Iterate, Materialize. Special collections: TwoLayerCache.</Description>
+    <PackageTags>MicroElements NotNull collections functional TwoLayerCache Materialize Iterate</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
@@ -21,7 +21,7 @@
 
   <!--Dependencies-->
   <ItemGroup>
-    <PackageReference Include="MicroElements.CodeContracts.Sources" Version="1.0.0" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.CodeContracts.Sources" Version="1.1.0" IncludeAssets="all" />
   </ItemGroup>
 
 </Project>

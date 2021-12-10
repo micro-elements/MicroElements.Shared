@@ -15,6 +15,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace MicroElements.Collections.TwoLayerCache
 {
@@ -61,7 +62,7 @@ namespace MicroElements.Collections.TwoLayerCache
         }
 
         /// <summary>
-        /// Gets cache metrics.
+        /// Gets cache metrics copy.
         /// </summary>
         public CacheMetrics Metrics
         {
@@ -102,7 +103,7 @@ namespace MicroElements.Collections.TwoLayerCache
             var isAdded = _coldCache.TryAdd(key, value);
 
             if (isAdded)
-                _metrics.ItemsAdded++;
+                Interlocked.Increment(ref _metrics.ItemsAdded);
 
             return isAdded;
         }
@@ -119,7 +120,7 @@ namespace MicroElements.Collections.TwoLayerCache
             if (_hotCache.TryGetValue(key, out value))
             {
                 // Cache hit, no more actions.
-                _metrics.HotCacheHit++;
+                Interlocked.Increment(ref _metrics.HotCacheHit);
                 return true;
             }
 
@@ -144,12 +145,12 @@ namespace MicroElements.Collections.TwoLayerCache
                             _coldCache = _hotCache;
                             _hotCache = CreateCache();
 
-                            _metrics.SwapCount++;
+                            Interlocked.Increment(ref _metrics.SwapCount);
                         }
                     }
                 }
 
-                _metrics.ColdCacheHit++;
+                Interlocked.Increment(ref _metrics.ColdCacheHit);
                 return true;
             }
 
@@ -175,7 +176,7 @@ namespace MicroElements.Collections.TwoLayerCache
             }
 
             var valueFromCache = _coldCache.GetOrAdd(key, valueFactory);
-            _metrics.ItemsAdded++;
+            Interlocked.Increment(ref _metrics.ItemsAdded);
             return valueFromCache;
         }
 
@@ -200,7 +201,7 @@ namespace MicroElements.Collections.TwoLayerCache
             }
 
             var valueFromCache = _coldCache.GetOrAdd(key, valueFactory, factoryArg);
-            _metrics.ItemsAdded++;
+            Interlocked.Increment(ref _metrics.ItemsAdded);
             return valueFromCache;
         }
 

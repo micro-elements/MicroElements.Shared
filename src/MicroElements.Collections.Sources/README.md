@@ -2,7 +2,7 @@
 
 ## Summary
 
-MicroElements source only package: Collection extensions: NotNull, Iterate. Special collections: TwoLayerCache.
+MicroElements source only package: Collection extensions: NotNull, Iterate, Materialize. Special collections: TwoLayerCache.
 
 ## Extensions
 
@@ -24,6 +24,17 @@ It's like `List.ForEach` but works with lazy enumerations and does not forces ad
 // Iterates values and outputs to console.
 Enumerable
     .Range(1, 100_000)
+    .Iterate(Console.WriteLine);
+```
+
+### Materialize
+Materializes source enumeration and allows to see intermediate results without changing execute chain.
+MaterializeDebug is the same as Materialize but works only in Debug mode and does not affect performance for Release builds.
+            
+```csharp
+Enumerable
+    .Range(1, 10)
+    .Materialize(values => { /*set breakpoint here*/ })
     .Iterate(Console.WriteLine);
 ```
 

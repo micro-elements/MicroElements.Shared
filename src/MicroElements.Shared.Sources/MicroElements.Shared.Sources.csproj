@@ -6,14 +6,20 @@
   <!--Build options-->
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <LangVersion>9.0</LangVersion>
-    <Nullable>enable</Nullable>
+
+    <PackageId>MicroElements.Shared.Sources</PackageId>
+    <PackageVersion>1.1.0</PackageVersion>
+    <Description>MicroElements source packages metapackage.</Description>
+    <PackageTags>MicroElements Reflection Expressions CodeContracts Formatting</PackageTags>
+
+    <PackCompile>false</PackCompile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MicroElements.CodeContracts.Sources" Version="1.0.0" PrivateAssets="all" />
-    <PackageReference Include="MicroElements.Collections.Sources" Version="1.1.0" PrivateAssets="all" />
-    <PackageReference Include="MicroElements.Formatting.Sources" Version="1.0.0" PrivateAssets="all" />
+    <PackageReference Include="MicroElements.CodeContracts.Sources" Version="1.1.0" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.Collections.Sources" Version="1.2.0" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.Formatting.Sources" Version="1.0.0" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.Reflection.Sources" Version="1.2.0" IncludeAssets="all" />
   </ItemGroup>
 
 </Project>

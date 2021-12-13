@@ -13,8 +13,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using JetBrains.Annotations;
+
+using Pure = System.Diagnostics.Contracts.PureAttribute;
 
 namespace MicroElements.Collections.Extensions.NotNull
 {

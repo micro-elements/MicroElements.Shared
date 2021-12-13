@@ -1,16 +1,19 @@
-﻿// Copyright (c) MicroElements. All rights reserved.
+﻿#region License
+// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using System;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using MicroElements.CodeContracts;
-
+#endregion
+#region Supressions
 #pragma warning disable
-// ReSharper disable once CheckNamespace
+// ReSharper disable CheckNamespace
+#endregion
 
 namespace MicroElements.Reflection.TypeExtensions
 {
+    using System;
+    using System.Reflection;
+    using System.Runtime.CompilerServices;
+    using MicroElements.CodeContracts;
+
     /// <summary>
     /// Reflection extensions.
     /// </summary>

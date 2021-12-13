@@ -11,11 +11,11 @@
 
 #endregion
 
-using System;
-using System.Linq.Expressions;
-
 namespace MicroElements.Reflection.ExpressionExtensions.AndAlso
 {
+    using System;
+    using System.Linq.Expressions;
+
     internal static partial class AndAlsoExtensions
     {
         internal static Expression<Func<T, bool>> AndAlso<T>(

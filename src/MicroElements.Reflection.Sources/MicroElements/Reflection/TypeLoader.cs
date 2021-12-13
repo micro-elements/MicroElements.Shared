@@ -1,18 +1,24 @@
-﻿// Copyright (c) MicroElements. All rights reserved.
+﻿#region License
+// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using MicroElements.CodeContracts;
-using MicroElements.Collections.Extensions.NotNull;
-using MicroElements.Formatting.StringFormatter;
+#endregion
+#region Supressions
+#pragma warning disable
+// ReSharper disable CheckNamespace
+#endregion
 
 namespace MicroElements.Reflection
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
+    using System.Text.RegularExpressions;
+    using MicroElements.CodeContracts;
+    using MicroElements.Collections.Extensions.NotNull;
+    using MicroElements.Formatting.StringFormatter;
+
     /// <summary>
     /// Reflection utils.
     /// </summary>

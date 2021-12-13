@@ -1,13 +1,19 @@
-﻿// Copyright (c) MicroElements. All rights reserved.
+﻿#region License
+// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-using System;
-using System.Collections.Concurrent;
-using System.Linq.Expressions;
-using System.Reflection;
+#endregion
+#region Supressions
+#pragma warning disable
+// ReSharper disable CheckNamespace
+#endregion
 
 namespace MicroElements.Reflection.CodeCompiler
 {
+    using System;
+    using System.Collections.Concurrent;
+    using System.Linq.Expressions;
+    using System.Reflection;
+
     /// <summary>
     /// Creates compiled functions.
     /// </summary>

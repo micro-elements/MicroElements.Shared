@@ -28,9 +28,7 @@ namespace MicroElements.CodeContracts
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T AssertArgumentNotNull<T>([NoEnumeration] this T? arg, [InvokerParameterName] string name)
         {
-            if (arg is null)
-                throw new ArgumentNullException(name);
-            return arg;
+            return arg ?? throw new ArgumentNullException(name);
         }
     }
 }

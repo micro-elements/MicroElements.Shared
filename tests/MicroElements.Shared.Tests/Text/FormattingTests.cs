@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 using FluentAssertions;
-using MicroElements.Formatting.StringFormatter;
+using MicroElements.Text.StringFormatter;
 using Xunit;
 
-namespace MicroElements.Shared.Tests
+namespace MicroElements.Shared.Tests.Text
 {
     public class FormattingTests
     {

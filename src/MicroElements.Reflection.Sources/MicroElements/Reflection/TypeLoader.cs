@@ -17,7 +17,7 @@ namespace MicroElements.Reflection
     using System.Text.RegularExpressions;
     using MicroElements.CodeContracts;
     using MicroElements.Collections.Extensions.NotNull;
-    using MicroElements.Formatting.StringFormatter;
+    using MicroElements.Text.StringFormatter;
 
     /// <summary>
     /// Reflection utils.

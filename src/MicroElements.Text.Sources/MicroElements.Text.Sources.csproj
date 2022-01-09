@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--Common package info-->
+  <Import Project="..\..\common.props" />
+
+  <!--Package related info-->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+
+    <PackageId>MicroElements.Text.Sources</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Description>MicroElements source code only package. Provides extensions for working with text: formatting, hashing, encoding. Commonly Used Extensions: FormatValue, FormatAsTuple, EncodeBase58.</Description>
+    <PackageTags>MicroElements Formatting Base58</PackageTags>
+
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+</Project>

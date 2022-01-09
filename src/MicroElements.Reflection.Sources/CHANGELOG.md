@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.3.0] - 2022-01-09
+- Changed: Package reference MicroElements.Formatting.Sources replaced with MicroElements.Text.Sources
+
 ## [1.2.0] - 2021-12-10
 - Added: TypeLoader
 - Added: AndAlso ExpressionExtensions

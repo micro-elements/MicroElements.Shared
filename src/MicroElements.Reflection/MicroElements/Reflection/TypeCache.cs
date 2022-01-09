@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using MicroElements.CodeContracts;
 using MicroElements.Collections.Extensions.NotNull;
-using MicroElements.Formatting.StringFormatter;
+using MicroElements.Text.StringFormatter;
 
 namespace MicroElements.Reflection
 {

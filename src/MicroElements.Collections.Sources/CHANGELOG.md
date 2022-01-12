@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.3.0] - 2022-01-12
+- Changed: Fixed PureAttribute ambiguity in NotNull extension when JetBrains.Annotations referenced
+
 ## [1.2.0] - 2021-12-10
 - Added: Materialize extensions
 - Changed: TwoLayerCache: Interlocked increments for cache metrics

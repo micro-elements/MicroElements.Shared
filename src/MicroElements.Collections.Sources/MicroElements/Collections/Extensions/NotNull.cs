@@ -11,14 +11,13 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using JetBrains.Annotations;
-
-using Pure = System.Diagnostics.Contracts.PureAttribute;
-
 namespace MicroElements.Collections.Extensions.NotNull
 {
+    using System;
+    using System.Collections.Generic;
+    using JetBrains.Annotations;
+    using PureAttribute = System.Diagnostics.Contracts.PureAttribute;
+
     /// <readme id="NotNull">
     /// <![CDATA[
     /// ### NotNull

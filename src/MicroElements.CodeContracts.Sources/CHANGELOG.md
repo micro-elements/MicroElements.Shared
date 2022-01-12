@@ -1,7 +1,10 @@
 ﻿# Changelog
 
+## [1.2.0] - 2022-01-12
+- Changed: MicroElements.JetBrains.Sources bumped to 1.2.0
+
 ## [1.1.0] - 2021-12-10
-- Added: MicroElements.JetBrains.Sources bumped to 1.1.0
+- Changed: MicroElements.JetBrains.Sources bumped to 1.1.0
 
 ## [1.0.0] - 2021-11-08
 - Added: AssertArgumentNotNull

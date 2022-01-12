@@ -8,7 +8,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 
     <PackageId>MicroElements.CodeContracts.Sources</PackageId>
-    <PackageVersion>1.1.1</PackageVersion>
+    <PackageVersion>1.2.0</PackageVersion>
     <Description>MicroElements source code only package: CodeContracts. Main methods: AssertArgumentNotNull.</Description>
     <PackageTags>MicroElements CodeContracts</PackageTags>
 
@@ -21,7 +21,7 @@
 
   <!--Dependencies-->
   <ItemGroup>
-    <PackageReference Include="MicroElements.JetBrains.Sources" Version="1.1.1" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.JetBrains.Sources" Version="1.2.0" IncludeAssets="all" />
   </ItemGroup>
 
 </Project>

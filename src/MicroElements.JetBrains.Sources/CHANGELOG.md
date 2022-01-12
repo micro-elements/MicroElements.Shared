@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.2.0] - 2022-01-12
+- Added: UsedImplicitlyAttribute, MeansImplicitUseAttribute, PublicAPIAttribute
+
 ## [1.1.0] - 2021-12-10
 - Added: Compiler Constant: ME_JETBRAINS_ANNOTATIONS_DISABLE disables MicroElements.JetBrains.Sources
 

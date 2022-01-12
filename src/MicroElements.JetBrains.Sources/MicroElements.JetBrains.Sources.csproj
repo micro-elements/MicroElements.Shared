@@ -8,7 +8,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 
     <PackageId>MicroElements.JetBrains.Sources</PackageId>
-    <PackageVersion>1.1.1</PackageVersion>
+    <PackageVersion>1.2.0</PackageVersion>
     <Description>MicroElements source only package: JetBrains.Annotations. It is a subset of JetBrains.Annotations that is used in MicroElements projects.</Description>
     <PackageTags>MicroElements JetBrainsAnnotations</PackageTags>
 

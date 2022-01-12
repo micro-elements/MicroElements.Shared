@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.3.1] - 2022-01-12
+- Changed: MicroElements.Collections.Sources bumped to 1.3.0
+
 ## [1.3.0] - 2022-01-09
 - Changed: Package reference MicroElements.Formatting.Sources replaced with MicroElements.Text.Sources
 

@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.4.0] - 2022-05-15
+- Added: TwoLayerCache.Instance - global static cache instance
+
 ## [1.3.0] - 2022-01-12
 - Changed: Fixed PureAttribute ambiguity in NotNull extension when JetBrains.Annotations referenced
 

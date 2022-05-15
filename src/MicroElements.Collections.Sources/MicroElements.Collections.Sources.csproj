@@ -8,7 +8,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
 
     <PackageId>MicroElements.Collections.Sources</PackageId>
-    <PackageVersion>1.3.0</PackageVersion>
+    <PackageVersion>1.4.0</PackageVersion>
     <Description>MicroElements source only package: Collection extensions: NotNull, Iterate, Materialize. Special collections: TwoLayerCache.</Description>
     <PackageTags>MicroElements NotNull collections functional TwoLayerCache Materialize Iterate</PackageTags>
 

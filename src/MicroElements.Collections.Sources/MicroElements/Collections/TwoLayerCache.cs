@@ -208,4 +208,26 @@ namespace MicroElements.Collections.TwoLayerCache
         // Creates new dictionary instance.
         private ConcurrentDictionary<TKey, TValue> CreateCache() => new(_comparer);
     }
+
+    /// <summary>
+    /// TwoLayerCache extensions.
+    /// </summary>
+    internal static class TwoLayerCache
+    {
+        private static readonly ConcurrentDictionary<string, object> _caches = new();
+
+        /// <summary>
+        /// Gets global static instance of cache by name.
+        /// </summary>
+        /// <typeparam name="TKey">Key type.</typeparam>
+        /// <typeparam name="TValue">Value type.</typeparam>
+        /// <param name="name">Cache instance name.</param>
+        /// <param name="maxItemCount">Max item count.</param>
+        /// <param name="comparer">The <see cref="IEqualityComparer{TKey}"/> implementation to use when comparing keys.</param>
+        /// <returns>Cache instance.</returns>
+        internal static TwoLayerCache<TKey, TValue> Instance<TKey, TValue>(string name, int maxItemCount = 256, IEqualityComparer<TKey>? comparer = null)
+        {
+            return (TwoLayerCache<TKey, TValue>)_caches.GetOrAdd(name, s => new TwoLayerCache<TKey, TValue>(maxItemCount, comparer));
+        }
+    }
 }

@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.3.0] - 2022-05-15
+- Changed: Added CallerArgumentExpression to AssertArgumentNotNull that allows to omit argument name
+
 ## [1.2.0] - 2022-01-12
 - Changed: MicroElements.JetBrains.Sources bumped to 1.2.0
 

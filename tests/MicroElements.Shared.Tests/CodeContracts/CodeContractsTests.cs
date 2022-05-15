@@ -19,7 +19,22 @@ namespace MicroElements.Shared.Tests
             ToUpper("value").Should().Be("VALUE");
 
             Action act = () => ToUpper(null);
-            act.Should().Throw<ArgumentNullException>();
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("value");
+        }
+
+        [Fact]
+        public void AssertArgumentNotNullTest2()
+        {
+            static string ToUpper(string value)
+            {
+                value.AssertArgumentNotNull();
+                return value.ToUpper();
+            }
+
+            ToUpper("value").Should().Be("VALUE");
+
+            Action act = () => ToUpper(null);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("value");
         }
     }
 }

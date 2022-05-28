@@ -1,17 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31112.23
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32505.173
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.Shared.Sources", "src\MicroElements.Shared.Sources\MicroElements.Shared.Sources.csproj", "{0ABC387E-B4B3-4C66-8E55-9966266F2B61}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{FD7ABEA6-64C8-4CEA-AECA-F95672558C1D}"
-	ProjectSection(SolutionItems) = preProject
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F224D23C-4CB9-4F78-8B64-7B8C1263EB8C}"
-	ProjectSection(SolutionItems) = preProject
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution_items", "solution_items", "{4AFCFB68-71A9-482A-BFAA-0E08FE08A44C}"
 	ProjectSection(SolutionItems) = preProject
@@ -20,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution_items", "solution_
 		src\Directory.Build.props = src\Directory.Build.props
 		LICENSE = LICENSE
 		README.md = README.md
+		README.md.liquid = README.md.liquid
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.CodeContracts.Sources", "src\MicroElements.CodeContracts.Sources\MicroElements.CodeContracts.Sources.csproj", "{4A6D2023-46A4-4217-A0DA-EA64BB9D21B5}"
@@ -29,8 +26,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{6CBCEC34-9B2F-42E8-B5A4-01079059FBCA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{AE6BA553-BDFA-4BE4-A92C-101299DED649}"
-	ProjectSection(SolutionItems) = preProject
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroElements.Formatting.Sources", "src\MicroElements.Formatting.Sources\MicroElements.Formatting.Sources.csproj", "{20AC4408-1A4C-4928-87C7-639345DB48D3}"
 EndProject

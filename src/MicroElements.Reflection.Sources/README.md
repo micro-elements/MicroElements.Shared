@@ -2,7 +2,7 @@
 
 ## Summary
 
-MicroElements source only package: Reflection. Classes: TypeExtensions, TypeCheck, ObjectExtensions, Expressions, CodeCompiler.
+MicroElements source only package: Reflection. Classes: TypeExtensions, TypeCheck, ObjectExtensions, Expressions, CodeCompiler, FriendlyName.
 
 ## Extensions
 
@@ -15,12 +15,9 @@ Notes:
 - Gets name for arrays: `Int32[]` -> `int[]`
 - Uses recursion. Example: `List<Tuple<int, string>>`
 - Uses cache: every name builds only once. You can use uncached `BuildFriendlyName`.
-            
-Performance: ThreadSafe
-             
-Allocations: One string for one type
+- ThreadSafe: true
 
-Other:
+## Other (Description TBD):
 - TypeExtensions
 - TypeCheck
 - ObjectExtensions

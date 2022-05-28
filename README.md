@@ -56,7 +56,7 @@ ___
 |   |   |
 --- | ---
 Name | MicroElements.Reflection.Sources
-Description | MicroElements source only package: Reflection. Classes: TypeExtensions, TypeCheck, ObjectExtensions, Expressions, CodeCompiler.
+Description | MicroElements source only package: Reflection. Classes: TypeExtensions, TypeCheck, ObjectExtensions, Expressions, CodeCompiler, FriendlyName.
 Github | [https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.Reflection.Sources](https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.Reflection.Sources)
 Status | [![NuGetVersion](https://img.shields.io/nuget/v/MicroElements.Reflection.Sources.svg)](https://www.nuget.org/packages/MicroElements.Reflection.Sources) ![NuGetDownloads](https://img.shields.io/nuget/dt/MicroElements.Reflection.Sources.svg)
 

@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.5.0] - 2022-05-28
+- Added: Cache.Instance - global static cache instance
+
 ## [1.4.0] - 2022-05-15
 - Added: TwoLayerCache.Instance - global static cache instance
 

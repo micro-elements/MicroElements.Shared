@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.4.0] - 2022-05-28
+- Added: FriendlyName that allows to get friendly (human readable) name for the type.
+
 ## [1.3.1] - 2022-01-12
 - Changed: MicroElements.Collections.Sources bumped to 1.3.0
 

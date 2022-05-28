@@ -46,7 +46,7 @@ namespace MicroElements.Build
         public static int Main() => Execute<Build>(x => x.BuildFromVS);
 
         Target BuildFromVS => _ => _
-            .DependsOn(BuildAndPack, Test)
+            .DependsOn(BuildAndPack, Docs, Test)
             .Executes(() =>
             {
                 // To properly reload projects

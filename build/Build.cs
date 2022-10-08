@@ -81,11 +81,13 @@ namespace MicroElements.Build
             "MicroElements.Reflection.Sources",
             "MicroElements.Reflection",
             "MicroElements.Shared.Sources",
+            "MicroElements.Logging",
         };
 
         static readonly string[] TestProjects = new string[]
         {
             "MicroElements.Shared.Tests",
+            "MicroElements.Logging.Tests",
         };
 
         #region Build Arguments

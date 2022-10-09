@@ -1,3 +1,5 @@
+using MicroElements.Logging;
+
 namespace DisclosureParser.Api
 {
     public partial class SamplesProgram
@@ -8,7 +10,12 @@ namespace DisclosureParser.Api
                 .CreateBuilder(args);
 
             builder.Logging.ClearProviders();
-            builder.Logging.AddJsonConsole();
+            builder.Logging.AddConsole(options => options.IncludeScopes = true);
+            // builder.Services.AddThrottlingLogging(options =>
+            // {
+            //     options.AppendMetricsToMessage = true;
+            //     options.ThrottleCategory("MicroElements.Samples.Api.Logging.LoggingSampleController");
+            // });
             
             // Add services to the container.
             builder.Services.AddControllers();

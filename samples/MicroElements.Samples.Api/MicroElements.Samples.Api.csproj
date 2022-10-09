@@ -14,5 +14,9 @@
     <InternalsVisibleTo Include="MicroElements.Logging.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MicroElements.Logging\MicroElements.Logging.csproj" />
+  </ItemGroup>
+
 
 </Project>

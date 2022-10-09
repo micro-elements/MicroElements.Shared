@@ -23,9 +23,9 @@ namespace MicroElements.Logging
         
         public ThrottlingLogger(ILogger logger, IOptionsMonitor<ThrottlingLoggerOptions> options, LoggerState loggerCache)
         {
-            logger.AssertArgumentNotNull();
-            options.AssertArgumentNotNull();
-            loggerCache.AssertArgumentNotNull();
+            logger.AssertArgumentNotNull(nameof(logger));
+            options.AssertArgumentNotNull(nameof(options));
+            loggerCache.AssertArgumentNotNull(nameof(loggerCache));
                 
             _logger = logger;
             _options = options.CurrentValue;

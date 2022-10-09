@@ -4,7 +4,6 @@
   <PropertyGroup>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
-    <RootNamespace></RootNamespace>
   </PropertyGroup>
 
   <!--NuGetizer-->

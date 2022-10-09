@@ -1,14 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <!--Build options-->
+  <PropertyGroup>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <DebugType>embedded</DebugType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
 
-  <!--Common package info-->
-  <Import Project="..\..\common.props" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+  </ItemGroup>
 
   <!--Package related info-->
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
 
     <PackageId>MicroElements.Logging</PackageId>
-    <PackageVersion>1.0.0</PackageVersion>
+    <PackageVersion>1.0.1</PackageVersion>
     <Description>OptimizedLoggerFactory, OptimizedLogger allows to do not write duplicated messages.</Description>
     <PackageTags>MicroElements Logging Optimization</PackageTags>
 

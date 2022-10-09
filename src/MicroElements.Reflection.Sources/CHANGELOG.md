@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.5.0] - 2022-10-09
+- Changed: FriendlyName nullable types support, more documentation and tests
+
 ## [1.4.0] - 2022-05-28
 - Added: FriendlyName that allows to get friendly (human readable) name for the type.
 

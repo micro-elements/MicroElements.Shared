@@ -7,7 +7,7 @@
 #region Supressions
 
 #pragma warning disable
-// ReSharper disable CheckNamespace
+// ReSharper disable All
 
 #endregion
 
@@ -15,7 +15,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
+
 
 namespace MicroElements.Collections.TwoLayerCache
 {
@@ -116,7 +118,7 @@ namespace MicroElements.Collections.TwoLayerCache
         /// <returns>true if value found by key.</returns>
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
-            // Try get value from hot cache.
+            // Try get a value from the hot cache.
             if (_hotCache.TryGetValue(key, out value))
             {
                 // Cache hit, no more actions.
@@ -124,7 +126,7 @@ namespace MicroElements.Collections.TwoLayerCache
                 return true;
             }
 
-            // Check whether value exists in cold cache.
+            // Check whether the value exists in the cold cache.
             if (_coldCache.TryGetValue(key, out value))
             {
                 // Value exists in cold cache so move to hot cache.
@@ -206,7 +208,10 @@ namespace MicroElements.Collections.TwoLayerCache
         }
 
         // Creates new dictionary instance.
-        private ConcurrentDictionary<TKey, TValue> CreateCache() => new(_comparer);
+        private ConcurrentDictionary<TKey, TValue> CreateCache() => new(
+            concurrencyLevel: Environment.ProcessorCount,
+            capacity: _maxItemCount,
+            comparer: _comparer);
     }
 
     /// <summary>
@@ -214,7 +219,30 @@ namespace MicroElements.Collections.TwoLayerCache
     /// </summary>
     internal static class TwoLayerCache
     {
-        private static readonly ConcurrentDictionary<string, object> _caches = new();
+        static class Caches
+        {
+            public static class ForType<TKey, TValue>
+            {
+                public static readonly ConcurrentDictionary<string, TwoLayerCache<TKey, TValue>> ByName = new();
+                public static TwoLayerCache<TKey, TValue>? Singleton;
+                public static readonly object Lock = new ();
+            }
+        }
+        
+        /// <summary> Cache settings that can be used on cache creation. </summary>
+        internal class CacheSettings<TKey, TValue>
+        {
+            public CacheSettings(string name) => Name = name;
+
+            /// <summary> Gets cache name. </summary>
+            public string Name { get; }
+
+            /// <summary> Gets or sets max items count per cache. </summary>
+            public int MaxItemCount { get; set; } = 256;
+
+            /// <summary> Gets or sets optional key comparer for cache. </summary>
+            public IEqualityComparer<TKey>? Comparer { get; set; }
+        }
 
         /// <summary>
         /// Gets global static instance of cache by name.
@@ -222,12 +250,41 @@ namespace MicroElements.Collections.TwoLayerCache
         /// <typeparam name="TKey">Key type.</typeparam>
         /// <typeparam name="TValue">Value type.</typeparam>
         /// <param name="name">Cache instance name.</param>
-        /// <param name="maxItemCount">Max item count.</param>
-        /// <param name="comparer">The <see cref="IEqualityComparer{TKey}"/> implementation to use when comparing keys.</param>
+        /// <param name="configure">Optional cache configure action.</param>
         /// <returns>Cache instance.</returns>
-        internal static TwoLayerCache<TKey, TValue> Instance<TKey, TValue>(string name, int maxItemCount = 256, IEqualityComparer<TKey>? comparer = null)
+        internal static TwoLayerCache<TKey, TValue> Instance<TKey, TValue>(string? name = null, Action<CacheSettings<TKey, TValue>>? configure = null)
         {
-            return (TwoLayerCache<TKey, TValue>)_caches.GetOrAdd(name, s => new TwoLayerCache<TKey, TValue>(maxItemCount, comparer));
+            if (name == null)
+                return InstancePerType<TKey, TValue>(configure);
+
+            return Caches.ForType<TKey, TValue>.ByName
+                .GetOrAdd(name, static (name, action) => CreateCacheInstance(name, action), configure);
+        }
+        
+        private static TwoLayerCache<TKey, TValue> InstancePerType<TKey, TValue>(Action<CacheSettings<TKey, TValue>>? configure = null)
+        {
+            if (Caches.ForType<TKey, TValue>.Singleton == null)
+            {
+                lock (Caches.ForType<TKey, TValue>.Lock)
+                {
+                    if (Caches.ForType<TKey, TValue>.Singleton == null)
+                    {
+                        Caches.ForType<TKey, TValue>.Singleton = CreateCacheInstance($"TwoLayerCache<{nameof(TKey)},{nameof(TValue)}>", configure);
+                    }
+                }
+            }
+            
+            return Caches.ForType<TKey, TValue>.Singleton;
+        }
+
+        private static TwoLayerCache<TKey, TValue> CreateCacheInstance<TKey, TValue>(string name, Action<CacheSettings<TKey, TValue>>? configure)
+        {
+            var settings = new CacheSettings<TKey, TValue>(name);
+            configure?.Invoke(settings);
+
+            return new TwoLayerCache<TKey, TValue>(
+                maxItemCount: settings.MaxItemCount,
+                comparer: settings.Comparer ?? EqualityComparer<TKey>.Default);
         }
     }
 }

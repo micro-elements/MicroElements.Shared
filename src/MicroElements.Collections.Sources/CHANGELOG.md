@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## [1.6.0] - 2022-10-09
+- Added: MicroElements.Collections.Extensions.WildCard. Methods: IsMatchesWildcard, IncludeByWildcardPatterns, ExcludeByWildcardPatterns
+- Changed: Cache.Instance and TwoLayerCache.Instance methods unified and become typesafe. 
+
 ## [1.5.0] - 2022-05-28
 - Added: Cache.Instance - global static cache instance
 

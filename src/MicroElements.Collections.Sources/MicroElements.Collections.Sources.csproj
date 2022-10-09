@@ -8,8 +8,10 @@
     <TargetFramework>netstandard2.1</TargetFramework>
 
     <PackageId>MicroElements.Collections.Sources</PackageId>
-    <PackageVersion>1.5.0</PackageVersion>
-    <Description>MicroElements source only package: Collection extensions: NotNull, Iterate, Materialize. Special collections: TwoLayerCache.</Description>
+    <PackageVersion>1.6.0</PackageVersion>
+    <Description>MicroElements source only package:
+      Collection extensions: NotNull, Iterate, Materialize, IncludeByWildcardPatterns, ExcludeByWildcardPatterns.
+      Special collections: TwoLayerCache.</Description>
     <PackageTags>MicroElements NotNull collections functional TwoLayerCache Materialize Iterate</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -22,6 +24,7 @@
   <!--Dependencies-->
   <ItemGroup>
     <PackageReference Include="MicroElements.CodeContracts.Sources" Version="1.2.0" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.IsExternalInit" Version="1.1.0" IncludeAssets="all" />
   </ItemGroup>
 
 </Project>

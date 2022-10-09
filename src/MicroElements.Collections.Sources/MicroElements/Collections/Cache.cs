@@ -7,7 +7,7 @@
 #region Supressions
 
 #pragma warning disable
-// ReSharper disable CheckNamespace
+// ReSharper disable All
 
 #endregion
 
@@ -18,7 +18,7 @@ namespace MicroElements.Collections.Cache
     using System.Collections.Generic;
     using System.Linq;
 
-    /// <summary>
+    /// <summary id="Cache">
     ///<![CDATA[
     /// ### Cache
     /// Global ambient cache extensions.
@@ -43,7 +43,15 @@ namespace MicroElements.Collections.Cache
     /// </summary>
     internal static class Cache
     {
-        private static readonly ConcurrentDictionary<string, object> _caches = new();
+        static class Caches
+        {
+            public static class ForType<TKey, TValue>
+            {
+                public static readonly ConcurrentDictionary<string, ConcurrentDictionary<TKey, TValue>> ByName = new();
+                public static ConcurrentDictionary<TKey, TValue>? Singleton;
+                public static readonly object Lock = new ();
+            }
+        }
 
         /// <summary> Cache settings that can be used on cache creation. </summary>
         internal class CacheSettings<TKey, TValue>
@@ -68,27 +76,39 @@ namespace MicroElements.Collections.Cache
         /// <param name="name">Cache name.</param>
         /// <param name="configure">Optional cache configure action.</param>
         /// <returns>Cache instance.</returns>
-        internal static ConcurrentDictionary<TKey, TValue> Instance<TKey, TValue>(string name, Action<CacheSettings<TKey, TValue>>? configure = null)
+        internal static ConcurrentDictionary<TKey, TValue> Instance<TKey, TValue>(string? name = null, Action<CacheSettings<TKey, TValue>>? configure = null)
         {
-            return (ConcurrentDictionary<TKey, TValue>)_caches.GetOrAdd(name, static (name, action) => CreateCacheInstance(name, action), configure);
+            if (name == null)
+                return InstancePerType<TKey, TValue>(configure);
 
-            static ConcurrentDictionary<TKey, TValue> CreateCacheInstance(string name, Action<CacheSettings<TKey, TValue>>? configure)
-            {
-                var settings = new CacheSettings<TKey, TValue>(name);
-                configure?.Invoke(settings);
-
-                return new ConcurrentDictionary<TKey, TValue>(
-                    collection: settings.InitialValues ?? Enumerable.Empty<KeyValuePair<TKey, TValue>>(),
-                    comparer: settings.Comparer ?? EqualityComparer<TKey>.Default);
-            }
+            return Caches.ForType<TKey, TValue>.ByName
+                .GetOrAdd(name, static (name, action) => CreateCacheInstance(name, action), configure);
         }
-    }
-
-    public static class CacheExample
-    {
-        public static void test()
+        
+        private static ConcurrentDictionary<TKey, TValue> InstancePerType<TKey, TValue>(Action<CacheSettings<TKey, TValue>>? configure = null)
         {
-            var value1 = Cache.Instance<string, string>("Example").GetOrAdd("key1", k => "value1");
+            if (Caches.ForType<TKey, TValue>.Singleton == null)
+            {
+                lock (Caches.ForType<TKey, TValue>.Lock)
+                {
+                    if (Caches.ForType<TKey, TValue>.Singleton == null)
+                    {
+                        Caches.ForType<TKey, TValue>.Singleton = CreateCacheInstance($"ConcurrentDictionary<{nameof(TKey)},{nameof(TValue)}>", configure);
+                    }
+                }
+            }
+            
+            return Caches.ForType<TKey, TValue>.Singleton;
+        }
+
+        private static ConcurrentDictionary<TKey, TValue> CreateCacheInstance<TKey, TValue>(string name, Action<CacheSettings<TKey, TValue>>? configure)
+        {
+            var settings = new CacheSettings<TKey, TValue>(name);
+            configure?.Invoke(settings);
+
+            return new ConcurrentDictionary<TKey, TValue>(
+                collection: settings.InitialValues ?? Enumerable.Empty<KeyValuePair<TKey, TValue>>(),
+                comparer: settings.Comparer ?? EqualityComparer<TKey>.Default);
         }
     }
 }

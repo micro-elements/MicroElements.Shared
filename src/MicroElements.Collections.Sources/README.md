@@ -2,7 +2,9 @@
 
 ## Summary
 
-MicroElements source only package: Collection extensions: NotNull, Iterate, Materialize. Special collections: TwoLayerCache.
+MicroElements source only package:
+      Collection extensions: NotNull, Iterate, Materialize, IncludeByWildcardPatterns, ExcludeByWildcardPatterns.
+      Special collections: TwoLayerCache.
 
 ## Extensions
 
@@ -38,6 +40,31 @@ Enumerable
     .Iterate(Console.WriteLine);
 ```
 
+### WildCard
+Provides methods for wildcard or glob filtering.
+            
+See also: https://en.wikipedia.org/wiki/Glob_(programming).
+             
+```csharp
+[Fact]
+public void WildcardInclude()
+{
+    string[] values = { "Microsoft.Extension.Logging", "Microsoft.AspNetCore.Hosting", "FluentAssertions", "System.Collections.Generic" };
+    string[] includePatterns = { "Microsoft.AspNetCore.*", "*.Collections.*" };
+    string[] result = { "Microsoft.AspNetCore.Hosting", "System.Collections.Generic" };
+    values.IncludeByWildcardPatterns(includePatterns).Should().BeEquivalentTo(result);
+}
+            
+[Fact]
+public void WildcardExclude()
+{
+    string[] values = { "Microsoft.Extension.Logging", "Microsoft.AspNetCore.Hosting", "FluentAssertions", "System.Collections.Generic" };
+    string[] excludePatterns =  { "Microsoft.AspNetCore.*", "*.Collections.*" };
+    string[] result = { "Microsoft.Extension.Logging", "FluentAssertions" };
+    values.ExcludeByWildcardPatterns(excludePatterns).Should().BeEquivalentTo(result);
+}
+```
+
 ## Collections
 
 ### TwoLayerCache
@@ -52,3 +79,23 @@ Notes:
 - GetValue first checks hot cache. If value not found in hot cache than cold cache uses for search.
 - If value exists in cold cache than item moves to hot cache.
 - If hot cache exceeds item limit then hot cache became cold cache and new hot cache creates.
+
+### Cache
+Global ambient cache extensions.
+Represents `ConcurrentDictionary` of some type that is accessed by it's name.
+            
+Reason: Use cache from any place of your code without declaring cache (that's so boring and noisy).
+Best suited for global caches of immutable objects that never changes in application lifecycle.
+             
+#### Usage
+             
+```csharp
+var value1 = Cache.Instance<string, string>("Example").GetOrAdd("key1", k => VeryLongGetValue(k));
+```
+            
+#### Notes
+- Cache instance is global so use proper cache instance names.
+- For static cache use some const name for example class name or method name
+- Can cause to memory leak if cache grows permanently. For such cases use caches that clears by time or size for example `TwoLayerCache`
+- Adds one more operation to find cache instance
+- It can be treated as some kind of an "AMBIENT CONTEXT" that becomes an anti-pattern. See: https://freecontent.manning.com/the-ambient-context-anti-pattern/

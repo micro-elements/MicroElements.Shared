@@ -38,7 +38,9 @@ ___
 |   |   |
 --- | ---
 Name | MicroElements.Collections.Sources
-Description | MicroElements source only package: Collection extensions: NotNull, Iterate, Materialize. Special collections: TwoLayerCache.
+Description | MicroElements source only package:
+      Collection extensions: NotNull, Iterate, Materialize, IncludeByWildcardPatterns, ExcludeByWildcardPatterns.
+      Special collections: TwoLayerCache.
 Github | [https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.Collections.Sources](https://github.com/micro-elements/MicroElements.Shared/tree/master/src/MicroElements.Collections.Sources)
 Status | [![NuGetVersion](https://img.shields.io/nuget/v/MicroElements.Collections.Sources.svg)](https://www.nuget.org/packages/MicroElements.Collections.Sources) ![NuGetDownloads](https://img.shields.io/nuget/dt/MicroElements.Collections.Sources.svg)
 

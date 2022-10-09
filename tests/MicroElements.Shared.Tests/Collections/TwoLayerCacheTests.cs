@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Concurrent;
+using FluentAssertions;
 using MicroElements.Collections.TwoLayerCache;
 using Xunit;
 
@@ -83,5 +84,16 @@ namespace MicroElements.Shared.Tests.Collections
             cache.TryGetValue("value1", out var value1FromCache);
             value1FromCache.Should().BeSameAs(value1);
         }
+        
+        [Fact]
+        public void CacheGet2()
+        {
+            ConcurrentDictionary<string, string> dictionary = new ConcurrentDictionary<string, string>();
+            for (int i = 0; i < 31; i++)
+            {
+                dictionary.GetOrAdd($"key{i}", $"value{i}");
+            }
+            
+        }   
     }
 }

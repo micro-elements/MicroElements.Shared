@@ -20,7 +20,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
 
     <PackageId>MicroElements.Logging</PackageId>
-    <PackageVersion>1.0.1</PackageVersion>
+    <PackageVersion>1.0.2</PackageVersion>
     <Description>OptimizedLoggerFactory, OptimizedLogger allows to do not write duplicated messages.</Description>
     <PackageTags>MicroElements Logging Optimization</PackageTags>
 

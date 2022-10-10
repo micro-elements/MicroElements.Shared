@@ -44,12 +44,14 @@ namespace MicroElements.Logging
         {
             // Log message
             var message = formatter(state, exception);
-            
+
+            // Message key for caching
+            var messageKey = _options.GetMessageKey?.Invoke(message) ?? message;
+
             // Metrics for message
             var messageMetrics = _loggerState.MessageCache
-                .GetOrAdd(message, msg => new MessageMetrics(msg, _options.ThrottlingPeriodOrDefault))
+                .GetOrAdd(messageKey, msg => new MessageMetrics(msg, _options.ThrottlingPeriodOrDefault))
                 .Increment();
-            
             
             if (ShouldWrite(messageMetrics))
             {

@@ -21,6 +21,11 @@ namespace MicroElements.Logging
         public string CategoryName { get; set; }
 
         /// <summary>
+        /// Message key for matching log messages. Be default is the message itself.
+        /// </summary>
+        public Func<string, string>? GetMessageKey { get; set; }
+
+        /// <summary>
         /// Gets or sets optional throttling strategy.
         /// </summary>
         public Func<MessageMetrics, bool>? ShouldWrite { get; set; }

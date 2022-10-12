@@ -1,41 +1,50 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using Microsoft.Extensions.DependencyInjection;
+using MicroElements.Collections.Cache;
+using MicroElements.Collections.TwoLayerCache;
 using Microsoft.Extensions.Logging;
 
 namespace MicroElements.Logging
 {
     public static class ThrottlingLoggerExtensions
     {
-        private static readonly ConcurrentDictionary<ILoggerFactory, ThrottlingLoggerFactory> _loggerFactories = new();
-            
-        public static ILoggerFactory WithThrottling(this ILoggerFactory loggerFactory, Action<ThrottlingLoggerOptions>? configure = null)
+        public static ILoggerFactory WithThrottling(this ILoggerFactory loggerFactory, Action<ThrottlingOptions>? configure = null)
         {
-            return _loggerFactories.GetOrAdd(loggerFactory, static (f, c) => WithThrottlingInPlace(f, c), configure);
-        }
-        
-        public static ThrottlingLoggerFactory WithThrottlingInPlace(this ILoggerFactory loggerFactory, Action<ThrottlingLoggerOptions>? configure = null)
-        {
-            var options = new ThrottlingLoggerOptions();
-            configure?.Invoke(options);
+            if (loggerFactory is ThrottlingLoggerFactory throttlingLoggerFactory)
+            {
+                var wrappedFactory = throttlingLoggerFactory.LoggerFactory;
+                var throttlingOptionsCopy = throttlingLoggerFactory.Options.Clone();
+                
+                return Cache
+                    .Instance<ILoggerFactory, ThrottlingLoggerFactory>()
+                    .GetOrAdd(wrappedFactory, static (_, state) =>
+                    {
+                        // Reconfigure existing ThrottlingOptions
+                        state.Configure?.Invoke(state.ThrottlingOptions);
+                        return new ThrottlingLoggerFactory(state.WrappedFactory, state.ThrottlingOptions);
+                    }, (WrappedFactory: wrappedFactory, ThrottlingOptions: throttlingOptionsCopy, Configure: configure));
+            }
 
-            return new ThrottlingLoggerFactory(loggerFactory, options);
+            return Cache
+                .Instance<ILoggerFactory, ThrottlingLoggerFactory>()
+                .GetOrAdd(loggerFactory, static (_, state) =>
+                {
+                    var throttlingOptions = new ThrottlingOptions();
+                    state.Configure?.Invoke(throttlingOptions);
+                    return new ThrottlingLoggerFactory(state.LoggerFactory, throttlingOptions);
+                }, (LoggerFactory: loggerFactory, Configure: configure));
         }
-        
-        public static IServiceCollection AddThrottlingLogging(this IServiceCollection services, Action<ThrottlingLoggerOptions>? configure = null)
+
+        public static ILogger WithThrottling(this ILogger logger, Action<ThrottlingLoggerOptions>? configure = null)
         {
-            if (configure != null)
-                services.Configure<ThrottlingLoggerOptions>(configure);
-            services.Decorate<ILoggerFactory>(factory => factory.WithThrottling(configure));
-            return services;
-        }
-        
-        public static ILogger WithThrottlingInPlace(this ILogger logger, Action<ThrottlingLoggerOptions>? configure = null)
-        {
-            var options = new ThrottlingLoggerOptions();
-            configure?.Invoke(options);
-            var optionsMonitor = new StaticOptionsMonitor<ThrottlingLoggerOptions>(options);
-            return new ThrottlingLogger(logger, optionsMonitor, LoggerState.Create("[InPlaceThrottling]", optionsMonitor));
+            return TwoLayerCache
+                .Instance<ILogger, ThrottlingLogger>()
+                .GetOrAdd(logger, static (_, state) =>
+                {
+                    var options = ThrottlingLoggerOptions.GetDefaultValues();
+                    state.Configure?.Invoke(options);
+                    return new ThrottlingLogger(state.Logger, new LoggerState(options.CategoryName ?? "*", options));
+                }, (Logger: logger, Configure: configure));
         }
     }
 }

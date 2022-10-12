@@ -8,39 +8,41 @@ namespace MicroElements.Samples.Api.Logging
     public class LoggingSampleController : ControllerBase
     {
         [HttpGet("[action]")]
-        public string GetData(string data, [FromServices] ILogger<LoggingSampleController> logger)
+        public string GetThrottlingMessage(string data, [FromServices] ILogger<LoggingSampleController> logger)
         {
-            logger.LogInformation($"GetData {data}");
+            logger.LogInformation($"Throttling message {data}");
             return data;
         }
         
         [HttpGet("[action]")]
-        public string GetData2(string data, [FromServices] ILoggerFactory loggerFactory)
+        public string GetNotThrottledMessage(string data, [FromServices] ILoggerFactory loggerFactory)
         {
             var logger = loggerFactory.CreateLogger("NotConfiguredCategory");
-            logger.LogInformation($"GetData2 {data}");
+            logger.LogInformation($"NotConfiguredCategory message {data}");
             return data;
         }
         
         [HttpGet("[action]")]
-        public string GetData3(string data, [FromServices] ILoggerFactory loggerFactory)
+        public string GetWithThrottlingInPlaceByFactory(string data, [FromServices] ILoggerFactory loggerFactory)
         {
-            var logger = loggerFactory
-                .WithThrottling(options =>
+            var loggerFactoryWithThrottling = loggerFactory
+                .WithThrottling(throttlingOptions =>
                 {
-                    options.AppendMetricsToMessage = true;
-                    options.ThrottleCategory("*");
-                })
-                .CreateLogger(typeof(LoggingSampleController));
-            logger.LogInformation($"GetData3 {data}");
+                    throttlingOptions.CategoryName = "*";
+                    throttlingOptions.AppendMetricsToMessage = true;
+                });
+            
+            var logger = loggerFactoryWithThrottling.CreateLogger(typeof(LoggingSampleController));
+            logger.LogInformation($"GetWithThrottlingInPlaceByFactory {data}");
             return data;
         }
         
         [HttpGet("[action]")]
-        public string GetData4(string data, [FromServices] ILoggerFactory loggerFactory)
+        public string GetWithThrottlingInPlaceByLogger(string data, [FromServices] ILoggerFactory loggerFactory)
         {
-            var logger = loggerFactory.WithThrottlingInPlace().CreateLogger<LoggingSampleController>();
-            logger.LogInformation($"GetData3 {data}");
+            var logger = loggerFactory.CreateLogger(typeof(LoggingSampleController));
+            var loggerWithThrottling = logger.WithThrottling();
+            loggerWithThrottling.LogInformation($"GetWithThrottlingInPlaceByLogger {data}");
             return data;
         }      
         

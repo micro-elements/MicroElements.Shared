@@ -9,10 +9,11 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Deterministic>true</Deterministic>
+    <RootNamespace />
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <!--Package related info-->
@@ -21,8 +22,8 @@
 
     <PackageId>MicroElements.Logging</PackageId>
     <PackageVersion>1.0.2</PackageVersion>
-    <Description>OptimizedLoggerFactory, OptimizedLogger allows to do not write duplicated messages.</Description>
-    <PackageTags>MicroElements Logging Optimization</PackageTags>
+    <Description>ThrottlingLoggerFactory, ThrottlingLogger allows to do not write duplicated messages.</Description>
+    <PackageTags>MicroElements Logging Throttling Optimization</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

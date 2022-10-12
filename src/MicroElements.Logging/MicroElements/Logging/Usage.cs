@@ -9,7 +9,7 @@ namespace MicroElements.Logging
         {
             ILoggerFactory loggerFactory = NullLoggerFactory.Instance.WithThrottling();
 
-            ILogger logger = NullLogger.Instance.WithThrottlingInPlace();
+            ILogger logger = NullLogger.Instance.WithThrottling();
         }
     }
 }

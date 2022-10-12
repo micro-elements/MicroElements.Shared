@@ -56,7 +56,7 @@ namespace MicroElements.Logging
         
         public double AttemptRateFromSuccess => _totalAttempts / DurationFromLastSuccess.TotalMinutes;
 
-        public MessageMetrics(string message, TimeSpan throttlingPeriod)
+        public MessageMetrics(string message, IThrottlingLoggerOptions options)
         {
             Message = message;
             FirstAttemptDateTime = DateTime.Now;

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using MicroElements.CodeContracts;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace MicroElements.Logging
 {
@@ -21,16 +19,12 @@ namespace MicroElements.Logging
             public static Func<ILogger,int,IDisposable> LogMetricsScope = LoggerMessage.DefineScope<int>("totalAttempts: {totalAttempts}");
         }
         
-        public ThrottlingLogger(ILogger logger, IOptionsMonitor<ThrottlingLoggerOptions> options, LoggerState loggerCache)
+        public ThrottlingLogger(ILogger logger, LoggerState loggerState)
         {
-            logger.AssertArgumentNotNull(nameof(logger));
-            options.AssertArgumentNotNull(nameof(options));
-            loggerCache.AssertArgumentNotNull(nameof(loggerCache));
-                
-            _logger = logger;
-            _options = options.CurrentValue;
-            _options.ThrottlingPeriod ??= TimeSpan.FromMinutes(1);
-            _loggerState = loggerCache;
+            _logger = logger.AssertArgumentNotNull(nameof(logger));
+            _loggerState = loggerState.AssertArgumentNotNull(nameof(loggerState));
+            
+            _options = loggerState.Options.Combine(ThrottlingLoggerOptions.GetDefaultValues());
         }
 
         /// <inheritdoc />
@@ -50,7 +44,7 @@ namespace MicroElements.Logging
 
             // Metrics for message
             var messageMetrics = _loggerState.MessageCache
-                .GetOrAdd(messageKey, msg => new MessageMetrics(msg, _options.ThrottlingPeriodOrDefault))
+                .GetOrAdd(messageKey, (msg, opt) => new MessageMetrics(msg, opt), _options)
                 .Increment();
             
             if (ShouldWrite(messageMetrics))
@@ -63,12 +57,11 @@ namespace MicroElements.Logging
                 var totalAttempts = messageMetrics.TotalAttempts;
                 var attemptRate = messageMetrics.AttemptRate;
 
-                var appendMetricsToScope = _options.AppendMetricsToScope ?? false;
-                var appendMetricsToMessage = _options.AppendMetricsToMessage ?? false;
+                // AppendMetricsToScope
+                using var logMetricsScope = _options.AppendMetricsToScope is true ? Scope.LogMetricsScope(_logger, totalAttempts) : null;
                 
-                using var logMetricsScope = appendMetricsToScope ? Scope.LogMetricsScope(_logger, totalAttempts) : null;
-                
-                if (appendMetricsToMessage)
+                // AppendMetricsToMessage
+                if (_options.AppendMetricsToMessage is true)
                 {
                     if (state is IReadOnlyList<KeyValuePair<string, object>> logValues)
                     {
@@ -104,6 +97,7 @@ namespace MicroElements.Logging
                     }
                 }
                 
+                // Count as Success and log
                 messageMetrics.Success();
                 _logger.Log(logLevel, eventId, state, exception, formatter);
             }
@@ -122,32 +116,13 @@ namespace MicroElements.Logging
                 // First attempt => always write.
                 return true;
             }
-            
-            var throttlingPeriod = _options.ThrottlingPeriodOrDefault;
-            return metrics.DurationFromLastSuccess >= throttlingPeriod;
+
+            if (_options.ThrottlingPeriod is { } throttlingPeriod)
+            {
+                return metrics.DurationFromLastSuccess >= throttlingPeriod;
+            }
+
+            return true;
         }
-    }
-
-    internal struct LogValues : IReadOnlyList<KeyValuePair<string, object>>
-    {
-        private readonly IReadOnlyList<KeyValuePair<string, object>> _values;
-
-        /// <inheritdoc />
-        public LogValues(IReadOnlyList<KeyValuePair<string, object>> values) : this()
-        {
-            _values = values;
-        }
-
-        /// <inheritdoc />
-        public IEnumerator<KeyValuePair<string, object>> GetEnumerator() => _values.GetEnumerator();
-
-        /// <inheritdoc />
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        /// <inheritdoc />
-        public int Count => _values.Count;
-
-        /// <inheritdoc />
-        public KeyValuePair<string, object> this[int index] => _values[index];
     }
 }

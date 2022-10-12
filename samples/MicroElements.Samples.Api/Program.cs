@@ -11,16 +11,26 @@ namespace DisclosureParser.Api
 
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole(options => options.IncludeScopes = true);
-            // builder.Services.AddThrottlingLogging(options =>
-            // {
-            //     options.AppendMetricsToMessage = true;
-            //     options.ThrottleCategory("MicroElements.Samples.Api.Logging.LoggingSampleController");
-            // });
+
+            var services = builder.Services;
+            
+            // Add log throttling
+            services.AddThrottlingLogging(options =>
+            {
+                options.AppendMetricsToMessage = true;
+                options.ThrottleCategory("MicroElements.Samples.Api.Logging.LoggingSampleController");
+            });
+
+            // Configure default throttling options
+            services.ConfigureThrottling(options => options.ThrottlingPeriod = TimeSpan.FromMinutes(1));
+            
+            // Configure some category options
+            services.ConfigureThrottling("MicroElements.Samples.Api.Logging.LoggingSampleController", options => options.GetMessageKey = s => s);
             
             // Add services to the container.
-            builder.Services.AddControllers();
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            services.AddControllers();
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen();
 
             var app = builder.Build();
 

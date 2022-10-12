@@ -2,4 +2,4 @@
 
 ## Summary
 
-OptimizedLoggerFactory, OptimizedLogger allows to do not write duplicated messages.
+ThrottlingLoggerFactory, ThrottlingLogger allows to do not write duplicated messages.

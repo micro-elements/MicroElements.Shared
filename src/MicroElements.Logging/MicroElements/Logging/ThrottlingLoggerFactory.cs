@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using MicroElements.Collections.Extensions.WildCard;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -10,48 +12,77 @@ namespace MicroElements.Logging
     public class ThrottlingLoggerFactory : ILoggerFactory
     {
         private static readonly ConcurrentDictionary<string, LoggerState> _loggerCaches = new();
+        
+        private readonly IOptionsMonitor<ThrottlingOptions> _options;
+        
+        /// <summary>
+        /// Gets wrapped logger factory.
+        /// </summary>
+        public ILoggerFactory LoggerFactory { get; }
 
-        private readonly ILoggerFactory _loggerFactory;
-        private readonly IOptionsMonitor<ThrottlingLoggerOptions> _options;
+        /// <summary>
+        /// Gets throttling options.
+        /// </summary>
+        public ThrottlingOptions Options => _options.CurrentValue;
 
         /// <summary>
         /// Creates a new <see cref="ThrottlingLoggerFactory"/> instance.
         /// </summary>
         /// <param name="loggerFactory">The decorated factory instance.</param>
         /// <param name="options">The options to use.</param>
-        public ThrottlingLoggerFactory(ILoggerFactory loggerFactory, ThrottlingLoggerOptions options)
-            : this(loggerFactory, new StaticOptionsMonitor<ThrottlingLoggerOptions>(options))
+        public ThrottlingLoggerFactory(ILoggerFactory loggerFactory, ThrottlingOptions options)
+            : this(loggerFactory, new StaticOptionsMonitor<ThrottlingOptions>(options))
         {
         }
-
+        
         /// <summary>
         /// Creates a new <see cref="ThrottlingLoggerFactory"/> instance.
         /// </summary>
         /// <param name="loggerFactory">The decorated factory instance.</param>
         /// <param name="options">The options to use.</param>
-        public ThrottlingLoggerFactory(ILoggerFactory loggerFactory, IOptionsMonitor<ThrottlingLoggerOptions> options)
+        [ActivatorUtilitiesConstructor]
+        public ThrottlingLoggerFactory(ILoggerFactory loggerFactory, IOptionsMonitor<ThrottlingOptions> options)
         {
-            _loggerFactory = loggerFactory;
+            LoggerFactory = loggerFactory;
             _options = options;
         }
 
         /// <inheritdoc />
-        public void Dispose() => _loggerFactory.Dispose();
+        public void Dispose() => LoggerFactory.Dispose();
 
         /// <inheritdoc />
-        public void AddProvider(ILoggerProvider provider) => _loggerFactory.AddProvider(provider);
+        public void AddProvider(ILoggerProvider provider) => LoggerFactory.AddProvider(provider);
 
         /// <inheritdoc />
         public ILogger CreateLogger(string categoryName)
         {
-            var logger = _loggerFactory.CreateLogger(categoryName);
+            var loggerState = _loggerCaches.GetOrAdd(categoryName, GetLoggerState, _options.CurrentValue);
             
-            var loggerState = _loggerCaches.GetOrAdd(categoryName, static (c,o) => LoggerState.Create(c, o), _options);
+            var logger = LoggerFactory.CreateLogger(categoryName);
             
-            if (loggerState.ShouldThrottle)
-                return new ThrottlingLogger(logger, _options, loggerState);
+            if (loggerState != LoggerState.NoThrottle)
+            {
+                return new ThrottlingLogger(logger, loggerState);
+            }
             
             return logger;
+        }
+        
+        private static LoggerState GetLoggerState(string categoryName, ThrottlingOptions throttlingOptions)
+        {
+            ThrottlingLoggerOptions? categoryOptions = throttlingOptions.GetBestMatch(categoryName);
+
+            if (categoryOptions != null)
+            {
+                if (categoryOptions != throttlingOptions.Default)
+                {
+                    categoryOptions = categoryOptions.Combine(throttlingOptions.Default);
+                }
+
+                return new LoggerState(categoryName, categoryOptions);
+            }
+
+            return LoggerState.NoThrottle;
         }
     }
 }

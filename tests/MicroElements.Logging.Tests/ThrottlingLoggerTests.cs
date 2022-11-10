@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using DisclosureParser.Api;
+using MicroElements.Api;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -18,7 +19,7 @@ public class ThrottlingLoggerTests
 
         var client = application.CreateClient();
 
-        var stringAsync = await client.GetStringAsync("/LoggingSample/GetData?data=123");
+        var stringAsync = await client.GetStringAsync($"/LoggingSample/{nameof(LoggingSampleController.GetThrottlingMessage)}?data=123");
         
         //...
     }

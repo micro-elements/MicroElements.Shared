@@ -6,26 +6,26 @@ namespace DisclosureParser.Api
     {
         public static void Main(string[] args)
         {
-            var builder = WebApplication
-                .CreateBuilder(args);
+            var builder = WebApplication.CreateBuilder(args);
 
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole(options => options.IncludeScopes = true);
 
             var services = builder.Services;
             
-            // Add log throttling
+            // Add log throttling 
+            services.AddThrottlingLogging();
             services.AddThrottlingLogging(options =>
             {
                 options.AppendMetricsToMessage = true;
-                options.ThrottleCategory("MicroElements.Samples.Api.Logging.LoggingSampleController");
+                options.ThrottleCategory("MicroElements.Api.LoggingSampleController");
             });
 
             // Configure default throttling options
             services.ConfigureThrottling(options => options.ThrottlingPeriod = TimeSpan.FromMinutes(1));
             
             // Configure some category options
-            services.ConfigureThrottling("MicroElements.Samples.Api.Logging.LoggingSampleController", options => options.GetMessageKey = s => s);
+            services.ConfigureThrottling("MicroElements.Api.LoggingSampleController", options => options.GetMessageKey = s => s);
             
             // Add services to the container.
             services.AddControllers();

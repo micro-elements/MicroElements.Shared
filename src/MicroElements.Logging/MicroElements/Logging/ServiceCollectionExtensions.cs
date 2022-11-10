@@ -8,21 +8,15 @@ namespace MicroElements.Logging
     {
         public static IServiceCollection AddThrottlingLogging(this IServiceCollection services, Action<ThrottlingOptions>? configure = null)
         {
-            if (configure != null)
-                services.Configure<ThrottlingOptions>(configure);
-            
+            services.ConfigureThrottling(configure ?? (options => options.CategoryName = "*"));
             services.Decorate<ILoggerFactory, ThrottlingLoggerFactory>();
-            
-            //services.Decorate<ILoggerFactory>(factory => factory.WithThrottling(configure));
             
             return services;
         }
 
-        public static IServiceCollection ConfigureThrottling(this IServiceCollection services, Action<ThrottlingOptions>? configure = null)
+        public static IServiceCollection ConfigureThrottling(this IServiceCollection services, Action<ThrottlingOptions> configure)
         {
-            if (configure != null)
-                services.Configure<ThrottlingOptions>(configure);
-            return services;
+            return services.Configure<ThrottlingOptions>(configure);
         }
         
         public static IServiceCollection ConfigureThrottling(this IServiceCollection services, string categoryFilter, Action<ThrottlingLoggerOptions>? configure = null)

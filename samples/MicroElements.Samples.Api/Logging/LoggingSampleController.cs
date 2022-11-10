@@ -1,7 +1,7 @@
 using MicroElements.Logging;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MicroElements.Samples.Api.Logging
+namespace MicroElements.Api
 {
     [ApiController]
     [Route("[controller]")]

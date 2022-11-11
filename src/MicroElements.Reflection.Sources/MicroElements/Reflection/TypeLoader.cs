@@ -16,14 +16,31 @@ namespace MicroElements.Reflection
     using System.Reflection;
     using System.Text.RegularExpressions;
     using MicroElements.CodeContracts;
-    using MicroElements.Collections.Extensions.NotNull;
-    using MicroElements.Text.StringFormatter;
 
     /// <summary>
     /// Reflection utils.
     /// </summary>
     internal static partial class TypeLoader
     {
+        /// <summary>
+        /// Gets types according <see cref="AssemblySource"/> and <see cref="TypeFilters"/>.
+        /// For more detailed information see <see cref="LoadAssemblies"/> and <see cref="GetTypes"/>
+        /// </summary>
+        /// <param name="assemblySource">The assembly source.</param>
+        /// <param name="typeFilters">The type filters.</param>
+        /// <param name="messages">Collection for output messages.</param>
+        /// <returns></returns>
+        public static IReadOnlyCollection<Type> LoadTypes(
+            this AssemblySource assemblySource,
+            TypeFilters typeFilters,
+            ICollection<string>? messages = null)
+        {
+            var types = assemblySource
+                .LoadAssemblies(messages)
+                .GetTypes(typeFilters, messages);
+            return types;
+        }
+        
         /// <summary>
         /// Loads assemblies according <paramref name="assemblySource"/>.
         /// 1. Gets all assemblies from <see cref="AppDomain.CurrentDomain"/> if <see cref="AssemblySource.LoadFromDomain"/> is true.
@@ -34,43 +51,47 @@ namespace MicroElements.Reflection
         /// <param name="messages">Message list for diagnostic messages.</param>
         /// <returns>Assemblies.</returns>
         public static IEnumerable<Assembly> LoadAssemblies(
-            AssemblySource assemblySource,
+            this AssemblySource assemblySource,
             ICollection<string>? messages = null)
         {
             assemblySource.AssertArgumentNotNull(nameof(assemblySource));
 
             IEnumerable<Assembly> assemblies = Array.Empty<Assembly>();
-            AssemblyFilters assemblyFilters = assemblySource.AssemblyFilters;
-
+            
             if (assemblySource.LoadFromDomain)
                 assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-            assemblies = assemblies
-                .IncludeByPatterns(assembly => assembly.FullName, assemblyFilters.IncludePatterns)
-                .ExcludeByPatterns(assembly => assembly.FullName, assemblyFilters.ExcludePatterns);
-
+            
             if (assemblySource.LoadFromDirectory != null)
             {
                 if (!Directory.Exists(assemblySource.LoadFromDirectory))
                     throw new DirectoryNotFoundException($"Assembly ScanDirectory {assemblySource.LoadFromDirectory} is not exists.");
 
+                var searchPatterns = assemblySource.SearchPatterns ?? new[] { "*.dll" };
                 var assembliesFromDirectory =
-                    assemblySource
-                        .SearchPatterns
+                    searchPatterns
                         .SelectMany(filePattern => Directory.EnumerateFiles(assemblySource.LoadFromDirectory, filePattern, SearchOption.TopDirectoryOnly))
-                        .IncludeByPatterns(fileName => fileName, assemblyFilters.IncludePatterns)
-                        .ExcludeByPatterns(fileName => fileName, assemblyFilters.ExcludePatterns)
+                        .IncludeByPatterns(fileName => fileName, assemblySource.IncludePatterns)
+                        .ExcludeByPatterns(fileName => fileName, assemblySource.ExcludePatterns)
                         .Select(assemblyFile => TryLoadAssemblyFrom(assemblyFile, messages)!)
                         .Where(assembly => assembly != null);
 
                 assemblies = assemblies.Concat(assembliesFromDirectory);
             }
 
+            if (assemblySource.Assemblies is { Count: > 0 })
+            {
+                assemblies = assemblies.Concat(assemblySource.Assemblies);
+            }
+            
+            assemblies = assemblies
+                .IncludeByPatterns(assembly => assembly.FullName, assemblySource.IncludePatterns)
+                .ExcludeByPatterns(assembly => assembly.FullName, assemblySource.ExcludePatterns);
+
             assemblies = assemblies.Distinct();
 
             return assemblies;
         }
-
+        
         /// <summary>
         /// Gets types from assembly list according type filters.
         /// </summary>
@@ -79,7 +100,7 @@ namespace MicroElements.Reflection
         /// <param name="messages">Message list for diagnostic messages.</param>
         /// <returns>Types that matches filters.</returns>
         public static IReadOnlyCollection<Type> GetTypes(
-            IReadOnlyCollection<Assembly> assemblies,
+            this IEnumerable<Assembly> assemblies,
             TypeFilters typeFilters,
             ICollection<string>? messages = null)
         {
@@ -149,55 +170,7 @@ namespace MicroElements.Reflection
             }
         }
     }
-
-    /// <summary>
-    /// Assembly filters.
-    /// </summary>
-    internal class AssemblyFilters
-    {
-        /// <summary>
-        /// Empty assembly filter with no filtering.
-        /// </summary>
-        public static AssemblyFilters Empty { get; } = new AssemblyFilters(
-            includePatterns: null,
-            excludePatterns: null);
-
-        /// <summary>
-        /// <see cref="Assembly.FullName"/> wildcard include patterns.
-        /// <example>MyCompany.*</example>
-        /// </summary>
-        public IReadOnlyCollection<string>? IncludePatterns { get; }
-
-        /// <summary>
-        /// <see cref="Assembly.FullName"/> wildcard exclude patterns.
-        /// <example>System.*</example>
-        /// </summary>
-        public IReadOnlyCollection<string>? ExcludePatterns { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AssemblyFilters"/> class.
-        /// </summary>
-        /// <param name="includePatterns"><see cref="Assembly.FullName"/> wildcard include patterns.</param>
-        /// <param name="excludePatterns"><see cref="Assembly.FullName"/> wildcard exclude patterns.</param>
-        public AssemblyFilters(
-            IReadOnlyCollection<string>? includePatterns = null,
-            IReadOnlyCollection<string>? excludePatterns = null)
-        {
-            IncludePatterns = includePatterns;
-            ExcludePatterns = excludePatterns;
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<(string Name, object? Value)> GetNameValuePairs()
-        {
-            yield return (nameof(IncludePatterns), IncludePatterns.NotNull().FormatAsTuple());
-            yield return (nameof(ExcludePatterns), ExcludePatterns.NotNull().FormatAsTuple());
-        }
-
-        /// <inheritdoc />
-        public override string ToString() => GetNameValuePairs().FormatAsTuple();
-    }
-
+    
     /// <summary>
     /// Assembly source.
     /// </summary>
@@ -206,120 +179,74 @@ namespace MicroElements.Reflection
         /// <summary>
         /// Gets an empty assembly source. No assemblies, no filters.
         /// </summary>
-        public static AssemblySource Empty { get; } = new AssemblySource(
+        public static AssemblySource Empty { get; } = new (
             loadFromDomain: false,
-            loadFromDirectory: null,
-            assemblyFilters: AssemblyFilters.Empty);
+            loadFromDirectory: null);
 
         /// <summary>
         /// All assemblies from AppDomain.
         /// </summary>
-        public static AssemblySource Default { get; } = new AssemblySource(
+        public static AssemblySource AppDomain { get; } = new (
             loadFromDomain: true,
             loadFromDirectory: null,
-            assemblyFilters: AssemblyFilters.Empty,
             filterByTypeFilters: true);
 
-        /// <summary>
-        /// Load assemblies from <see cref="AppDomain.CurrentDomain"/>.
-        /// </summary>
-        public bool LoadFromDomain { get; }
+        /// <summary> Load assemblies from <see cref="System.AppDomain.CurrentDomain"/>. </summary>
+        public bool LoadFromDomain { get; set; }
 
-        /// <summary>
-        /// Optional load assemblies from provided directory.
-        /// </summary>
-        public string? LoadFromDirectory { get; }
+        /// <summary> Optional load assemblies from provided directory. </summary>
+        public string? LoadFromDirectory { get; set; }
 
         /// <summary>
         /// Optional file patterns for loading from directory.
         /// </summary>
-        public IReadOnlyCollection<string> SearchPatterns { get; }
+        public IReadOnlyCollection<string>? SearchPatterns { get; set; }
 
         /// <summary>
-        /// Filters to filter assemblies.
+        /// <see cref="Assembly.FullName"/> wildcard include patterns.
+        /// <example>MyCompany.*</example>
         /// </summary>
-        public AssemblyFilters AssemblyFilters { get; }
+        public IReadOnlyCollection<string>? IncludePatterns { get; set; } = null;
+
+        /// <summary>
+        /// <see cref="Assembly.FullName"/> wildcard exclude patterns.
+        /// <example>System.*</example>
+        /// </summary>
+        public IReadOnlyCollection<string>? ExcludePatterns { get; set; } = null;
 
         /// <summary>
         /// Take user provided assemblies.
         /// </summary>
-        public IReadOnlyCollection<Assembly> Assemblies { get; }
+        public IReadOnlyCollection<Assembly>? Assemblies { get; set; }
 
         /// <summary>
         /// Filter assemblies after type filtering and take only assemblies that owns filtered types.
         /// </summary>
-        public bool FilterByTypeFilters { get; }
-
-        /// <summary>
-        /// Result assemblies.
-        /// </summary>
-        public IReadOnlyCollection<Assembly>? ResultAssemblies { get; }
-
+        public bool FilterByTypeFilters { get; set; } = true;
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="AssemblySource"/> class.
         /// </summary>
-        /// <param name="loadFromDomain">Optional load assemblies from <see cref="AppDomain.CurrentDomain"/>.</param>
+        /// <param name="loadFromDomain">Optional load assemblies from <see cref="System.AppDomain.CurrentDomain"/>.</param>
         /// <param name="loadFromDirectory">Optional load assemblies from provided directory.</param>
         /// <param name="searchPatterns">Optional file patterns for loading from directory.</param>
         /// <param name="assemblyFilters">Optional assembly filters.</param>
         /// <param name="assemblies">User provided assemblies.</param>
         /// <param name="filterByTypeFilters">Filter assemblies after type filtering and take only assemblies that owns filtered types.</param>
-        /// <param name="resultAssemblies">Result assemblies.</param>
         public AssemblySource(
             bool loadFromDomain = false,
             string? loadFromDirectory = null,
             IReadOnlyCollection<string>? searchPatterns = null,
-            AssemblyFilters? assemblyFilters = null,
             IReadOnlyCollection<Assembly>? assemblies = null,
-            bool filterByTypeFilters = true,
-            IReadOnlyCollection<Assembly>? resultAssemblies = null)
+            bool filterByTypeFilters = true)
         {
             LoadFromDomain = loadFromDomain;
+            
             LoadFromDirectory = loadFromDirectory;
-            SearchPatterns = searchPatterns == null || searchPatterns.Count == 0 ? new []{ "*.dll" } : searchPatterns;
-            AssemblyFilters = assemblyFilters ?? AssemblyFilters.Empty;
-            Assemblies = assemblies ?? Array.Empty<Assembly>();
+            SearchPatterns = searchPatterns;
+            
+            Assemblies = assemblies;
             FilterByTypeFilters = filterByTypeFilters;
-            ResultAssemblies = resultAssemblies;
-        }
-
-        /// <summary>
-        /// Create copy of current object with some changes.
-        /// </summary>
-        /// <param name="assemblyFilters">Optional change <see cref="AssemblyFilters"/>.</param>
-        /// <param name="assemblies">Optional change <see cref="Assemblies"/>.</param>
-        /// <param name="filterByTypeFilters">Optional change <see cref="FilterByTypeFilters"/> flag.</param>
-        /// <param name="resultAssemblies">Optional change <see cref="ResultAssemblies"/>.</param>
-        /// <returns>New instance of <see cref="AssemblySource"/> with changes.</returns>
-        public AssemblySource With(
-            AssemblyFilters? assemblyFilters = null,
-            IReadOnlyCollection<Assembly>? assemblies = null,
-            bool? filterByTypeFilters = null,
-            IReadOnlyCollection<Assembly>? resultAssemblies = null)
-        {
-            AssemblySource source = this;
-            return new AssemblySource(
-                assemblyFilters: assemblyFilters ?? source.AssemblyFilters,
-                assemblies: assemblies ?? source.Assemblies,
-                filterByTypeFilters: filterByTypeFilters ?? source.FilterByTypeFilters,
-                resultAssemblies: resultAssemblies ?? source.ResultAssemblies);
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<(string Name, object? Value)> GetNameValuePairs()
-        {
-            yield return (nameof(LoadFromDomain), LoadFromDomain);
-            yield return (nameof(LoadFromDirectory), LoadFromDirectory);
-            yield return (nameof(AssemblyFilters), AssemblyFilters);
-            yield return (nameof(Assemblies), Assemblies);
-            yield return (nameof(FilterByTypeFilters), FilterByTypeFilters);
-            yield return (nameof(ResultAssemblies), ResultAssemblies?.Select(assembly => assembly.GetName().Name));
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return GetNameValuePairs().FormatAsTuple();
         }
     }
 
@@ -329,232 +256,24 @@ namespace MicroElements.Reflection
     internal class TypeFilters
     {
         /// <summary>
-        /// Empty type filter.
-        /// </summary>
-        public static TypeFilters Empty { get; } = new TypeFilters(
-            isPublic: true,
-            fullNameIncludes: null,
-            fullNameExcludes: null);
-
-        /// <summary>
         /// All public types excluding anonymous.
         /// </summary>
-        public static TypeFilters AllPublicTypes { get; } = new TypeFilters(
-            isPublic: true,
-            fullNameExcludes: new[] { "<*" });
-
-        /// <summary>
-        /// Include only public types.
-        /// </summary>
-        public bool IsPublic { get; }
-
-        /// <summary>
-        /// Include types that <see cref="Type.FullName"/> matches filters.
-        /// </summary>
-        public IReadOnlyCollection<string>? FullNameIncludes { get; }
-
-        /// <summary>
-        /// Exclude types that <see cref="Type.FullName"/> matches filters.
-        /// </summary>
-        public IReadOnlyCollection<string>? FullNameExcludes { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TypeFilters"/> class.
-        /// </summary>
-        /// <param name="isPublic">Include only public types.</param>
-        /// <param name="fullNameIncludes">Include types that <see cref="Type.FullName"/> matches filters.</param>
-        /// <param name="fullNameExcludes">Exclude types that <see cref="Type.FullName"/> matches filters.</param>
-        public TypeFilters(
-            bool isPublic = true,
-            IReadOnlyCollection<string>? fullNameIncludes = null,
-            IReadOnlyCollection<string>? fullNameExcludes = null)
+        public static TypeFilters AllPublicTypes { get; } = new ()
         {
-            IsPublic = isPublic;
-            FullNameIncludes = fullNameIncludes;
-            FullNameExcludes = fullNameExcludes;
-        }
+            IsPublic = true,
+            FullNameExcludes = new[] { "<*" }
+        };
+        
+        /// <summary> Include only public types. </summary>
+        public bool IsPublic { get; set; }
 
-        /// <summary>
-        /// Create copy of current object with some changes.
-        /// </summary>
-        /// <param name="isPublic">Optional change <see cref="IsPublic"/>.</param>
-        /// <param name="fullNameIncludes">Optional change <see cref="FullNameIncludes"/>.</param>
-        /// <param name="fullNameExcludes">Optional change <see cref="FullNameExcludes"/>.</param>
-        /// <returns>New instance of <see cref="TypeFilters"/> with changes.</returns>
-        public TypeFilters With(
-            bool? isPublic = null,
-            IReadOnlyCollection<string>? fullNameIncludes = null,
-            IReadOnlyCollection<string>? fullNameExcludes = null)
-        {
-            TypeFilters source = this;
-            return new TypeFilters(
-                isPublic: isPublic ?? source.IsPublic,
-                fullNameIncludes: fullNameIncludes ?? source.FullNameIncludes,
-                fullNameExcludes: fullNameExcludes ?? source.FullNameExcludes);
-        }
+        /// <summary> Include types that <see cref="Type.FullName"/> matches filters. </summary>
+        public IReadOnlyCollection<string>? FullNameIncludes { get; set; }
 
-        /// <inheritdoc />
-        public IEnumerable<(string Name, object? Value)> GetNameValuePairs()
-        {
-            yield return (nameof(IsPublic), IsPublic);
-            yield return (nameof(FullNameIncludes), FullNameIncludes.NotNull().FormatAsTuple());
-            yield return (nameof(FullNameExcludes), FullNameExcludes.NotNull().FormatAsTuple());
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return GetNameValuePairs().FormatAsTuple();
-        }
+        /// <summary> Exclude types that <see cref="Type.FullName"/> matches filters. </summary>
+        public IReadOnlyCollection<string>? FullNameExcludes { get; set; }
     }
-
-    /// <summary>
-    /// Type source.
-    /// </summary>
-    internal class TypeSource
-    {
-        /// <summary>
-        /// Empty type source.
-        /// </summary>
-        public static TypeSource Empty { get; } = new TypeSource(
-            typeFilters: TypeFilters.Empty,
-            typeRegistrations: null);
-
-        /// <summary>
-        /// All public types excluding anonymous.
-        /// </summary>
-        public static TypeSource AllPublicTypes { get; } = new TypeSource(
-            typeFilters: TypeFilters.AllPublicTypes,
-            typeRegistrations: null);
-
-        /// <summary>
-        /// Type filters.
-        /// </summary>
-        public TypeFilters TypeFilters { get; }
-
-        /// <summary>
-        /// Defined type registrations.
-        /// </summary>
-        public IReadOnlyCollection<TypeRegistration> TypeRegistrations { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TypeSource"/> class.
-        /// </summary>
-        /// <param name="typeFilters">Filters to filter types.</param>
-        /// <param name="typeRegistrations">User provided registrations.</param>
-        public TypeSource(
-            TypeFilters typeFilters,
-            IReadOnlyCollection<TypeRegistration>? typeRegistrations = null)
-        {
-            TypeRegistrations = typeRegistrations ?? Array.Empty<TypeRegistration>();
-            TypeFilters = typeFilters;
-        }
-
-        /// <summary>
-        /// Creates new <see cref="TypeSource"/> from provided types.
-        /// </summary>
-        /// <param name="types">Types to add to source.</param>
-        /// <returns>New <see cref="TypeSource"/> instance.</returns>
-        public static TypeSource FromTypes(params Type[] types)
-        {
-            TypeRegistration[] typeRegistrations = types.NotNull().Select(type => new TypeRegistration(type, source: TypeRegistration.SourceType.Manual)).ToArray();
-            return Empty.With(typeRegistrations: typeRegistrations);
-        }
-
-        /// <summary>
-        /// Creates new <see cref="TypeSource"/> from provided type registrations.
-        /// </summary>
-        /// <param name="typeRegistrations">Type registrations to add to source.</param>
-        /// <returns>New <see cref="TypeSource"/> instance.</returns>
-        public static TypeSource FromTypeRegistrations(params TypeRegistration[] typeRegistrations)
-        {
-            return Empty.With(typeRegistrations: typeRegistrations);
-        }
-
-        /// <summary>
-        /// Creates copy of current object with changes.
-        /// </summary>
-        /// <param name="typeFilters">Optional type filters.</param>
-        /// <param name="typeRegistrations">Optional type registrations.</param>
-        /// <returns>New <see cref="TypeSource"/> instance.</returns>
-        public TypeSource With(
-            TypeFilters? typeFilters = null,
-            IReadOnlyCollection<TypeRegistration>? typeRegistrations = null)
-        {
-            TypeSource source = this;
-            return new TypeSource(
-                typeFilters: typeFilters ?? source.TypeFilters,
-                typeRegistrations: typeRegistrations ?? source.TypeRegistrations);
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<(string Name, object? Value)> GetNameValuePairs()
-        {
-            yield return (nameof(TypeFilters), TypeFilters);
-            yield return (nameof(TypeRegistrations), TypeRegistrations);
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return GetNameValuePairs().FormatAsTuple();
-        }
-    }
-
-    /// <summary>
-    /// Allows to register type in cache without assembly scanning.
-    /// Allows to register type alias.
-    /// </summary>
-    internal class TypeRegistration
-    {
-        /// <summary>
-        /// Type source.
-        /// </summary>
-        public enum SourceType
-        {
-            /// <summary>
-            /// Type was found on assembly scan.
-            /// </summary>
-            AssemblyScan,
-
-            /// <summary>
-            /// Type was registered by user.
-            /// </summary>
-            Manual,
-        }
-
-        /// <summary>
-        /// Type that should be added to cache.
-        /// </summary>
-        public Type Type { get; }
-
-        /// <summary>
-        /// Optional type alias.
-        /// For example for type 'System.Int32' set alias 'int'.
-        /// </summary>
-        public string? Alias { get; }
-
-        /// <summary>
-        /// Type source.
-        /// </summary>
-        public SourceType Source { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TypeRegistration"/> class.
-        /// </summary>
-        /// <param name="type">Type to register.</param>
-        /// <param name="source">Type source.</param>
-        /// <param name="alias">Optional type alias.</param>
-        public TypeRegistration(Type type, string? alias = null, SourceType source = SourceType.Manual)
-        {
-            type.AssertArgumentNotNull(nameof(type));
-
-            Type = type;
-            Alias = alias;
-            Source = source;
-        }
-    }
-
+    
     /// <summary>
     /// Provides methods for filtering.
     /// </summary>

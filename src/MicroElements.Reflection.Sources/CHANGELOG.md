@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## [1.6.0] - 2022-11-11
+- Changed: TypeLoader extensions simplified
+- Added: FriendlyName: added ParseFriendlyName extension
+- Added: TypeCache
+
 ## [1.5.0] - 2022-10-09
 - Changed: FriendlyName nullable types support, more documentation and tests
 

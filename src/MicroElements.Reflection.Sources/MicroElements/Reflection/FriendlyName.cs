@@ -16,15 +16,15 @@ namespace MicroElements.Reflection.FriendlyName
     using System.Reflection;
     using MicroElements.Collections.Extensions.NotNull;
     using MicroElements.Text.StringFormatter;
-    using MicroElements.Reflection.TypeCache; 
-
+    using MicroElements.Reflection.TypeCache;
+    
     /// <summary>
     /// FriendlyName extensions.
     /// </summary>
     internal static partial class FriendlyName
     {
         /// <summary> Global type name cache. </summary>
-        private static readonly ConcurrentDictionary<Type, string> _friendlyName = new();
+        private static readonly ConcurrentDictionary<Type, string> _friendlyNameCache = new();
 
         /// <summary>
         /// Gets standard type aliases: string, object, bool, byte, char, decimal, double, short, int, long, sbyte, float, ushort, uint, ulong, void.
@@ -48,7 +48,12 @@ namespace MicroElements.Reflection.FriendlyName
             { typeof(ulong), "ulong" },
             { typeof(void), "void" }
         };
-        
+
+        /// <summary>
+        /// Gets func that gets standard type alias.
+        /// </summary>
+        public static readonly Func<Type, string> GetStandardAliasFunc = type => StandardTypeAliases.GetValueOrDefault(type);
+
         /// <summary id="FriendlyName">
         /// <![CDATA[
         /// ### FriendlyName
@@ -75,23 +80,23 @@ namespace MicroElements.Reflection.FriendlyName
         /// ]]>
         /// </summary>
         /// <param name="type">The type to search for.</param>
-        /// <param name="typeAliases">Optional type aliases that replaces default type aliases.</param>
+        /// <param name="getName">Optional func that gets type alias for the type.</param>
         /// <returns>Human readable type name.</returns>
-        public static string GetFriendlyName(this Type type, IReadOnlyDictionary<Type, string>? typeAliases = null)
-            => _friendlyName.GetOrAdd(type, BuildFriendlyName(type, typeAliases));
-
+        public static string GetFriendlyName(this Type type, Func<Type, string?>? getName = null)
+            => _friendlyNameCache.GetOrAdd(type, BuildFriendlyName(type, getName));
+        
         /// <summary>
         /// Builds friendly (human readable) name for the type.
         /// For full description see <see cref="GetFriendlyName"/>.
         /// </summary>
         /// <param name="type">The type to search for.</param>
-        /// <param name="typeAliases">Optional type aliases that replaces default type aliases.</param>
+        /// <param name="getName">Optional func that gets type alias for the type.</param>
         /// <returns>Human readable type name.</returns>
-        public static string BuildFriendlyName(this Type type, IReadOnlyDictionary<Type, string>? typeAliases = null)
+        public static string BuildFriendlyName(this Type type, Func<Type, string?>? getName = null)
         {
-            typeAliases ??= StandardTypeAliases;
+           getName ??= GetStandardAliasFunc;
 
-            if (typeAliases.TryGetValue(type, out var stdAlias))
+            if (getName(type) is {} stdAlias)
                 return stdAlias;
 
             var friendlyName = type.Name;
@@ -115,7 +120,7 @@ namespace MicroElements.Reflection.FriendlyName
                 Type[] typeParameters = type.GetGenericArguments();
                 for (int i = 0; i < typeParameters.Length; i++)
                 {
-                    string typeParamName = typeParameters[i].GetFriendlyName(typeAliases);
+                    string typeParamName = typeParameters[i].GetFriendlyName(getName);
                     friendlyName += i == 0 ? typeParamName : ", " + typeParamName;
                 }
 
@@ -123,29 +128,49 @@ namespace MicroElements.Reflection.FriendlyName
             }
 
             if (type.IsArray && type.GetElementType() is {} elementType)
-                return elementType.GetFriendlyName(typeAliases) + "[]";
+                return elementType.GetFriendlyName(getName) + "[]";
             
             return friendlyName;
         }
     }
-
+    
     /// <summary>
     /// FriendlyName parser extensions.
     /// </summary>
     internal static class FriendlyNameParser
     {
-        private static readonly Lazy<ITypeCache> FriendlyNameCache = new (() => new HierarchicalTypeCache(new TypeCache(AssemblySource.AppDomain.LoadTypes(TypeFilters.AllPublicTypes)), new TypeCache(typeAliases: FriendlyName.StandardTypeAliases)));
-        private static readonly BuildContext DefaultContext = new()
+        private static readonly Lazy<ITypeCache> FriendlyNameCache = new (() => new TypeCache(typeAliases: FriendlyName.StandardTypeAliases).WithParent(new TypeCache(AssemblySource.AppDomain.LoadTypes(TypeFilters.AllPublicTypes))));
+
+        /// <summary>
+        /// Gets type by friendly name.
+        /// </summary>
+        /// <param name="typeName">Friendly type name.</param>
+        /// <param name="getType">Optional func that gets type by name.</param>
+        /// <param name="addType">Optional func that adds type and it's name. It's for caching results.</param>
+        /// <returns>Type for friendly name.</returns>
+        internal static Type? ParseFriendlyName(this string typeName,
+            Func<string, Type?>? getType = null,
+            Action<Type, string>? addType = null)
         {
-            GetType = FriendlyNameCache.Value.GetType,
-            AddType = FriendlyNameCache.Value.AddType
-        };
+            getType ??= FriendlyNameCache.Value.GetType;
+            addType ??= FriendlyNameCache.Value.AddType;
+            
+            var result = getType(typeName);
+            if (result != null)
+                return result;
+            
+            var typeNode = new TextNode(typeName);
+            var parsed = typeNode.ParseType();
+            var built = parsed.BuildType(getType);
+            result = built.Type;
+
+            if (result != null && addType != null)
+                addType(result, typeName);
+
+            return result;
+        }
         
-        internal class BuildContext
-        {
-            public Func<string, Type?> GetType { get; set; }
-            public Action<Type, string> AddType { get; set; }
-        };
+        #region Parsing
 
         internal interface ITypeNode
         {
@@ -157,7 +182,7 @@ namespace MicroElements.Reflection.FriendlyName
 
             void AddChild(ITypeNode node);
 
-            void Build(BuildContext context);
+            void Build(Func<string, Type?> getType);
         }
         
         internal abstract class TypeNode : ITypeNode
@@ -174,10 +199,9 @@ namespace MicroElements.Reflection.FriendlyName
             
             public void AddChild(ITypeNode node) => Children = Children.NotNull().Append(node).ToArray();
             
-            public virtual void Build(BuildContext context)
+            public virtual void Build(Func<string, Type?> getType)
             {
-                Type = Children?.Where(node => node.Type != null).Select(node => node.Type).FirstOrDefault() ??
-                       context.GetType(TypeName);
+                Type = Children?.Where(node => node.Type != null).Select(node => node.Type).FirstOrDefault() ?? getType(TypeName);
             }
         }
         
@@ -190,9 +214,9 @@ namespace MicroElements.Reflection.FriendlyName
         {
             public NullableNode(string typeName) : base(typeName) { }
             
-            public override void Build(BuildContext context)
+            public override void Build(Func<string, Type?> getType)
             {
-                var typeToWrap = context.GetType(TypeName);
+                var typeToWrap = getType(TypeName);
                 typeToWrap ??= Children.NotNull().Where(node => node.Type != null).Select(node => node.Type).FirstOrDefault();
                 
                 var nullable = (Type)typeof(Nullable<>).MakeGenericType(typeToWrap);
@@ -204,9 +228,9 @@ namespace MicroElements.Reflection.FriendlyName
         {
             public ArrayNode(string typeName) : base(typeName) { }
             
-            public override void Build(BuildContext context)
+            public override void Build(Func<string, Type?> getType)
             {
-                var typeToWrap = context.GetType(TypeName);
+                var typeToWrap = getType(TypeName);
                 typeToWrap ??= Children.NotNull().Where(node => node.Type != null).Select(node => node.Type).FirstOrDefault();
                 
                 var arrayType = typeToWrap.MakeArrayType();
@@ -220,13 +244,13 @@ namespace MicroElements.Reflection.FriendlyName
 
             public override string ToString() => $"Generic({TypeName},{Children.NotNull().Select(node => node.TypeName).FormatAsTuple(startSymbol: string.Empty, endSymbol: string.Empty)})".AppendChildren(Children);
 
-            public override void Build(BuildContext context)
+            public override void Build(Func<string, Type?> getType)
             {
                 var argsLength = Children?.Count ?? 1;
                 var genericTypeNameReal = $"{TypeName}`{argsLength}";
                 var argTypes = Children.NotNull().Select(node => node.Type).ToArray();
 
-                var openGenericType = context.GetType(genericTypeNameReal);
+                var openGenericType = getType(genericTypeNameReal);
                 var genericType = openGenericType.MakeGenericType(argTypes);
                
                 Type = genericType;
@@ -235,30 +259,6 @@ namespace MicroElements.Reflection.FriendlyName
         
         internal static string AppendChildren(this string text, IReadOnlyCollection<ITypeNode>? children) 
             => children != null ? $"{text}->{children.FormatAsTuple()}" : text;
-        
-        /// <summary>
-        /// Gets type by friendly name.
-        /// </summary>
-        /// <param name="typeName">Friendly type name.</param>
-        /// <param name="context">Optional context for customization.</param>
-        /// <returns>Type for friendly name.</returns>
-        internal static Type? ParseFriendlyName(this string typeName, BuildContext? context = null)
-        {
-            context ??= DefaultContext;
-            var result = context.GetType(typeName);
-            if (result != null)
-                return result;
-            
-            var typeNode = new TextNode(typeName);
-            var parsed = typeNode.ParseType();
-            var built = parsed.BuildType(context);
-            result = built.Type;
-
-            if (result != null)
-                context.AddType?.Invoke(result, typeName);
-
-            return result;
-        }
         
         internal static ITypeNode ParseType(this ITypeNode typeNode)
         {
@@ -316,7 +316,7 @@ namespace MicroElements.Reflection.FriendlyName
                     var genericNode = new GenericTypeNode(genericTypeName);
                     
                     string typeArgsValue = typeName.Substring(i + 1, iEnd.Value - i - 1);
-                    bool isGeneric = typeArgsValue.IsGeneric();
+                    bool isGeneric = IsGeneric(typeArgsValue);
                     
                     if (isGeneric)
                     {
@@ -379,37 +379,61 @@ namespace MicroElements.Reflection.FriendlyName
                 }
             }
 
+            static bool IsGeneric(string typeName)
+            {
+                foreach (var c in typeName)
+                {
+                    if (c == '<')
+                        return true;
+                    if (c == ',')
+                        return false;
+                }
+
+                return false;
+            }
+            
             #endregion
             
             return typeNode;
         }
         
-        internal static ITypeNode BuildType(this ITypeNode typeNode, BuildContext context)
+        internal static ITypeNode BuildType(this ITypeNode typeNode, Func<string, Type?> getType)
         {
             if (typeNode.Children != null)
             {
                 foreach (var child in typeNode.Children)
                 {
-                    child.BuildType(context);
+                    child.BuildType(getType);
                 }
             }
 
-            typeNode.Build(context);
+            typeNode.Build(getType);
 
             return typeNode;
         }
         
-        private static bool IsGeneric(this string typeName)
+        #endregion       
+    }
+    
+    /// <summary>
+    /// Interoperation with other types.
+    /// </summary>
+    internal static class TypeCacheExtensions
+    {
+        public static string GetFriendlyName(this Type type, IReadOnlyDictionary<Type, string>? typeAliases)
         {
-            foreach (var c in typeName)
-            {
-                if (c == '<')
-                    return true;
-                if (c == ',')
-                    return false;
-            }
+            return type.GetFriendlyName(GetAliasForTypeFunc(typeAliases));
 
-            return false;
+            static Func<Type, string?> GetAliasForTypeFunc(IReadOnlyDictionary<Type, string>? typeAliases)
+            {
+                return typeAliases == null ? FriendlyName.GetStandardAliasFunc : typeAliases.GetValueOrDefault;
+            }
         }
+
+        public static string GetFriendlyName(this Type type, ITypeCache typeCache)
+            => type.GetFriendlyName(typeCache.GetName);
+
+        internal static Type? ParseFriendlyName(this string typeName, ITypeCache typeCache)
+            => typeName.ParseFriendlyName(getType: typeCache.GetType, addType: typeCache.AddType);
     }
 }

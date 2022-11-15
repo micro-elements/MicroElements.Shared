@@ -17,12 +17,15 @@ namespace MicroElements.Reflection.TypeCache
     using MicroElements.Collections.Extensions.Iterate;
     using MicroElements.Collections.Extensions.NotNull;
 
+    /// <summary> Represents type cache abstraction. </summary>
     internal interface ITypeCache
     {
         Type? GetType(string typeName);
-        void AddType(Type type, string typeAlias);
+        string? GetName(Type type);
+        void AddType(Type type, string typeName);
     }
 
+    /// <summary> Type cache with ability to set type aliases. </summary>
     internal class TypeCache : ITypeCache
     {
         private readonly List<Type> _types;
@@ -95,8 +98,16 @@ namespace MicroElements.Reflection.TypeCache
             
             return null;
         }
+        
+        public string? GetName(Type type)
+        {
+            if (AliasForType.Value.TryGetValue(type, out var alias))
+                return alias;
+            
+            return null;
+        }
 
-        public void AddType(Type type, string typeAlias)
+        public void AddType(Type type, string typeName)
         {
             lock (_types)
             {
@@ -107,14 +118,15 @@ namespace MicroElements.Reflection.TypeCache
                 typesByFullName[type.FullName] = type;
             
                 var typesByAlias = (ConcurrentDictionary<string, Type>)TypesByAlias.Value;
-                typesByAlias[typeAlias] = type;
+                typesByAlias[typeName] = type;
             
                 var aliasForType = (ConcurrentDictionary<Type, string>)AliasForType.Value;
-                aliasForType[type] = typeAlias;
+                aliasForType[type] = typeName;
             }
         }
     }
 
+    /// <summary> Type cache that gets value from parent if it was not found in current cache. </summary>
     internal class HierarchicalTypeCache : ITypeCache
     {
         private readonly ITypeCache _parent;
@@ -125,11 +137,17 @@ namespace MicroElements.Reflection.TypeCache
             _parent = parent.AssertArgumentNotNull(nameof(parent));
             _typeCache = typeCache.AssertArgumentNotNull(nameof(typeCache));
         }
-
-        /// <inheritdoc />
+        
         public Type? GetType(string typeName) => _typeCache.GetType(typeName) ?? _parent.GetType(typeName);
+        
+        public string? GetName(Type type) => _typeCache.GetName(type) ?? _parent.GetName(type);
+        
+        public void AddType(Type type, string typeName) => _typeCache.AddType(type, typeName);
+    }
 
-        /// <inheritdoc />
-        public void AddType(Type type, string typeAlias) => _typeCache.AddType(type, typeAlias);
+    internal static class TypeCacheExtensions
+    {
+        public static ITypeCache WithParent(this ITypeCache typeCache, ITypeCache parent) =>
+            new HierarchicalTypeCache(parent, typeCache);
     }
 }

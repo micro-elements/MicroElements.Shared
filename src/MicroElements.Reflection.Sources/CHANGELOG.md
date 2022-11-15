@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## [1.7.0] - 2022-11-15
+- Changed: FriendlyName become more functional. All main methods now use functions as extension points.
+- Changed: Added GetName to ITypeCache that allow to use it without TypeCache fields knowledge. Also it can be used in FriendlyName methods.
+
 ## [1.6.0] - 2022-11-11
 - Changed: TypeLoader extensions simplified
 - Added: FriendlyName: added ParseFriendlyName extension

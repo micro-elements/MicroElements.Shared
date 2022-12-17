@@ -79,7 +79,7 @@ namespace MicroElements.Build
             "MicroElements.Formatting.Sources",
             "MicroElements.Text.Sources",
             "MicroElements.Reflection.Sources",
-            "MicroElements.Reflection",
+            //"MicroElements.Reflection",
             "MicroElements.Shared.Sources",
             "MicroElements.Logging",
         };

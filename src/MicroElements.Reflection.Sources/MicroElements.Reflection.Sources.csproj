@@ -21,7 +21,7 @@
 
   <!--Dependencies-->
   <ItemGroup>
-    <PackageReference Include="MicroElements.Collections.Sources" Version="1.3.0" IncludeAssets="all" />
+    <PackageReference Include="MicroElements.Collections.Sources" Version="1.6.0" IncludeAssets="all" />
     <PackageReference Include="MicroElements.IsExternalInit" Version="1.1.0" IncludeAssets="all" />
     <PackageReference Include="MicroElements.Text.Sources" Version="1.0.0" IncludeAssets="all" />
   </ItemGroup>

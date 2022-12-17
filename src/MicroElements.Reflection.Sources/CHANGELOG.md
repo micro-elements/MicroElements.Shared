@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [1.8.0] - 2022-12-17
+- Changed: `MicroElements.Reflection.TypeCache` renamed to `MicroElements.Reflection.TypeCaching`
+- Added: `LazyTypeCache` 
+- Added: `TypeCache.AppDomainTypes` and `TypeCache.AppDomainTypesUpdatable`
+- Changed: `FriendlyName` switched to lazy type cache with updatable app domain types
+
 ## [1.7.0] - 2022-11-15
 - Changed: FriendlyName become more functional. All main methods now use functions as extension points.
 - Changed: Added GetName to ITypeCache that allow to use it without TypeCache fields knowledge. Also it can be used in FriendlyName methods.

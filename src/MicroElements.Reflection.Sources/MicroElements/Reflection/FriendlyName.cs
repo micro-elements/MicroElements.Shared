@@ -16,7 +16,7 @@ namespace MicroElements.Reflection.FriendlyName
     using System.Reflection;
     using MicroElements.Collections.Extensions.NotNull;
     using MicroElements.Text.StringFormatter;
-    using MicroElements.Reflection.TypeCache;
+    using MicroElements.Reflection.TypeCaching;
     
     /// <summary>
     /// FriendlyName extensions.
@@ -139,7 +139,7 @@ namespace MicroElements.Reflection.FriendlyName
     /// </summary>
     internal static class FriendlyNameParser
     {
-        private static readonly Lazy<ITypeCache> FriendlyNameCache = new (() => new TypeCache(typeAliases: FriendlyName.StandardTypeAliases).WithParent(new TypeCache(AssemblySource.AppDomain.LoadTypes(TypeFilters.AllPublicTypes))));
+        private static readonly ITypeCache FriendlyNameCache = new LazyTypeCache(() => new TypeCache(typeAliases: FriendlyName.StandardTypeAliases).WithParent(TypeCache.AppDomainTypesUpdatable));
 
         /// <summary>
         /// Gets type by friendly name.
@@ -152,8 +152,8 @@ namespace MicroElements.Reflection.FriendlyName
             Func<string, Type?>? getType = null,
             Action<Type, string>? addType = null)
         {
-            getType ??= FriendlyNameCache.Value.GetType;
-            addType ??= FriendlyNameCache.Value.AddType;
+            getType ??= FriendlyNameCache.GetType;
+            addType ??= FriendlyNameCache.AddType;
             
             var result = getType(typeName);
             if (result != null)

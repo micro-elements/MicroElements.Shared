@@ -86,13 +86,23 @@ Represents `ConcurrentDictionary` of some type that is accessed by it's name.
             
 Reason: Use cache from any place of your code without declaring cache (that's so boring and noisy).
 Best suited for global caches of immutable objects that never changes in application lifecycle.
-             
+
 #### Usage
-             
+
 ```csharp
-var value1 = Cache.Instance<string, string>("Example").GetOrAdd("key1", k => VeryLongGetValue(k));
+// Static named cache
+var value = Cache
+    .Instance<string, string>("Example")
+    .GetOrAdd("key1", k => VeryLongFetch(k));
 ```
-            
+
+```csharp
+// Cache attached to instance
+var value = instance
+    .GetWeakCache<string, string>(/*optional name*/)
+    .GetOrAdd("key1", k => VeryLongFetch(k));
+```
+
 #### Notes
 - Cache instance is global so use proper cache instance names.
 - For static cache use some const name for example class name or method name

@@ -32,7 +32,16 @@ namespace MicroElements.Collections.Cache
     /// #### Usage
     ///
     /// ```csharp
-    /// var value1 = Cache.Instance<string, string>("Example").GetOrAdd("key1", k => VeryLongGetValue(k));
+    /// // Static named cache
+    /// var value = Cache
+    ///     .Instance<string, string>("Example")
+    ///     .GetOrAdd("key1", k => VeryLongFetch(k));
+    /// ```
+    /// ```csharp
+    /// // Cache attached to instance
+    /// var value = instance
+    ///     .GetWeakCache<string, string>(/*optional name*/)
+    ///     .GetOrAdd("key1", k => VeryLongFetch(k));
     /// ```
     ///
     /// #### Notes

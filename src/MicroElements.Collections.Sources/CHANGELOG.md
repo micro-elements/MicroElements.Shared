@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.7.0] - 2023-02-25
+- Added: Cache.GetWeakCache - special cache that attaches to instance with weak reference and can be released by GC after the host object release
+
 ## [1.6.0] - 2022-10-09
 - Added: MicroElements.Collections.Extensions.WildCard. Methods: IsMatchesWildcard, IncludeByWildcardPatterns, ExcludeByWildcardPatterns
 - Changed: Cache.Instance and TwoLayerCache.Instance methods unified and become typesafe. 

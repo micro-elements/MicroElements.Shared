@@ -6,6 +6,8 @@
 #endregion
 #region Supressions
 
+using System.Runtime.CompilerServices;
+
 #pragma warning disable
 // ReSharper disable All
 
@@ -26,9 +28,9 @@ namespace MicroElements.Collections.Cache
     ///
     /// Reason: Use cache from any place of your code without declaring cache (that's so boring and noisy).
     /// Best suited for global caches of immutable objects that never changes in application lifecycle.
-    /// 
+    ///
     /// #### Usage
-    /// 
+    ///
     /// ```csharp
     /// var value1 = Cache.Instance<string, string>("Example").GetOrAdd("key1", k => VeryLongGetValue(k));
     /// ```
@@ -45,11 +47,13 @@ namespace MicroElements.Collections.Cache
     {
         static class Caches
         {
-            public static class ForType<TKey, TValue>
+            internal static class ForType<TKey, TValue>
             {
-                public static readonly ConcurrentDictionary<string, ConcurrentDictionary<TKey, TValue>> ByName = new();
-                public static ConcurrentDictionary<TKey, TValue>? Singleton;
-                public static readonly object Lock = new ();
+                internal static ConcurrentDictionary<TKey, TValue>? Singleton;
+                internal static readonly ConcurrentDictionary<string, ConcurrentDictionary<TKey, TValue>> ByName = new();
+                internal static readonly ConditionalWeakTable<object, ConcurrentDictionary<TKey, TValue>> ByInstance = new();
+                internal static readonly ConditionalWeakTable<object, ConcurrentDictionary<string, ConcurrentDictionary<TKey, TValue>>> ByInstanceAndName = new();
+                internal static readonly object Lock = new();
             }
         }
 
@@ -84,7 +88,59 @@ namespace MicroElements.Collections.Cache
             return Caches.ForType<TKey, TValue>.ByName
                 .GetOrAdd(name, static (name, action) => CreateCacheInstance(name, action), configure);
         }
-        
+
+        /// <summary>
+        /// Gets weak referenced cache that attached to the <paramref name="hostObject"/>.
+        /// Cache will be released after the object dispose.
+        /// </summary>
+        /// <typeparam name="TKey">Key type.</typeparam>
+        /// <typeparam name="TValue">Value type.</typeparam>
+        /// <param name="hostObject">The object that "hosts" attached cache.</param>
+        /// <param name="name">Optional cache name to get.</param>
+        /// <param name="configure">Optional cache configure action.</param>
+        /// <returns></returns>
+        internal static ConcurrentDictionary<TKey, TValue> GetWeakCache<TKey, TValue>(this object hostObject,
+            string? name = null, Action<CacheSettings<TKey, TValue>>? configure = null)
+        {
+            if (name == null)
+                return Caches
+                    .ForType<TKey, TValue>
+                    .ByInstance
+                    .GetOrAdd(hostObject, static (_, a) => CreateCacheInstance(a.name ?? a.hostObject.GetHashCode().ToString(), a.configure), (hostObject, name, configure));
+
+            return Caches
+                .ForType<TKey, TValue>
+                .ByInstanceAndName
+                .GetOrAdd(hostObject, (_, _) => new ConcurrentDictionary<string, ConcurrentDictionary<TKey, TValue>>(), hostObject)
+                .GetOrAdd(name, static (name, action) => CreateCacheInstance(name, action), configure);
+        }
+
+        private static TValue GetOrAdd<TKey, TValue, TArg>(
+            this ConditionalWeakTable<TKey, TValue> weakTable,
+            TKey key,
+            Func<TKey, TArg, TValue> factory,
+            TArg arg)
+            where TValue : class where TKey : class
+        {
+            if (weakTable.TryGetValue(key, out var attachedValue))
+            {
+                return attachedValue;
+            }
+
+            lock (weakTable)
+            {
+                if (weakTable.TryGetValue(key, out attachedValue))
+                {
+                    return attachedValue;
+                }
+
+                attachedValue = factory(key, arg);
+                weakTable.Add(key, attachedValue);
+
+                return attachedValue;
+            }
+        }
+
         private static ConcurrentDictionary<TKey, TValue> InstancePerType<TKey, TValue>(Action<CacheSettings<TKey, TValue>>? configure = null)
         {
             if (Caches.ForType<TKey, TValue>.Singleton == null)
@@ -97,7 +153,7 @@ namespace MicroElements.Collections.Cache
                     }
                 }
             }
-            
+
             return Caches.ForType<TKey, TValue>.Singleton;
         }
 

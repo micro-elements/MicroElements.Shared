@@ -1,5 +1,11 @@
-﻿// Copyright (c) MicroElements. All rights reserved.
+﻿#region License
+// Copyright (c) MicroElements. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#endregion
+#region Supressions
+#pragma warning disable
+// ReSharper disable all
+#endregion
 
 namespace MicroElements.CodeContracts
 {
@@ -33,10 +39,10 @@ namespace MicroElements.CodeContracts
     }
 }
 
-namespace System.Runtime.CompilerServices
-{
 #if !NET6_0_OR_GREATER
 
+namespace System.Runtime.CompilerServices
+{
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
     internal sealed class CallerArgumentExpressionAttribute : Attribute
     {
@@ -47,6 +53,5 @@ namespace System.Runtime.CompilerServices
 
         public string ParameterName { get; }
     }
-
-#endif
 }
+#endif

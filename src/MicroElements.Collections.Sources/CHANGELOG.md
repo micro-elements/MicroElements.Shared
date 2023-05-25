@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## [1.8.0] - 2023-05-25
+- Added: WhereNotNull extension that enumerates only not null values 
+- Added: Execute extension that allows to execute an action on each value while enumerating the source enumeration
+
 ## [1.7.0] - 2023-02-25
 - Added: Cache.GetWeakCache - special cache that attaches to instance with weak reference and can be released by GC after the host object release
 

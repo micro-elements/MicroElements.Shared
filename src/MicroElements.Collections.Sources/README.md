@@ -3,7 +3,7 @@
 ## Summary
 
 MicroElements source only package:
-      Collection extensions: NotNull, Iterate, Materialize, IncludeByWildcardPatterns, ExcludeByWildcardPatterns.
+      Collection extensions: NotNull, Iterate, Execute, WhereNotNull, Materialize, IncludeByWildcardPatterns, ExcludeByWildcardPatterns.
       Special collections: TwoLayerCache.
 
 ## Extensions
@@ -18,6 +18,14 @@ string? GetFirstValue(IEnumerable<string>? optionalValues) =>
         .FirstOrDefault();
 ```
 
+### WhereNotNull
+Enumerates only not null values.
+            
+```csharp
+string?[] namesWithNulls = {"Alex", null, "John"};
+string[] names = namesWithNulls.WhereNotNull().ToArray();
+```
+
 ### Iterate
 Iterates values and executes action for each value.
 It's like `List.ForEach` but works with lazy enumerations and does not forces additional allocations.
@@ -27,6 +35,18 @@ It's like `List.ForEach` but works with lazy enumerations and does not forces ad
 Enumerable
     .Range(1, 100_000)
     .Iterate(Console.WriteLine);
+```
+
+### Execute
+Execute extension allows to execute an action on each value while enumerating the source enumeration.
+            
+This method is pure LINQ method, with postponed enumeration, also it can be chained.
+            
+```csharp
+Enumerable
+    .Range(1, 10)
+    .Execute(Console.WriteLine)
+    .Iterate();
 ```
 
 ### Materialize
@@ -86,23 +106,22 @@ Represents `ConcurrentDictionary` of some type that is accessed by it's name.
             
 Reason: Use cache from any place of your code without declaring cache (that's so boring and noisy).
 Best suited for global caches of immutable objects that never changes in application lifecycle.
-
+            
 #### Usage
-
+            
 ```csharp
 // Static named cache
 var value = Cache
     .Instance<string, string>("Example")
     .GetOrAdd("key1", k => VeryLongFetch(k));
 ```
-
 ```csharp
 // Cache attached to instance
 var value = instance
     .GetWeakCache<string, string>(/*optional name*/)
     .GetOrAdd("key1", k => VeryLongFetch(k));
 ```
-
+            
 #### Notes
 - Cache instance is global so use proper cache instance names.
 - For static cache use some const name for example class name or method name

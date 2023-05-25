@@ -11,18 +11,18 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace MicroElements.Collections.Extensions.Materialize
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <readme id="Materialize">
     /// <![CDATA[
     /// ### Materialize
     /// Materializes source enumeration and allows to see intermediate results without changing execute chain.
     /// MaterializeDebug is the same as Materialize but works only in Debug mode and does not affect performance for Release builds.
-    /// 
+    ///
     /// ```csharp
     /// Enumerable
     ///     .Range(1, 10)

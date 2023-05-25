@@ -20,7 +20,7 @@ namespace MicroElements.Shared.Tests.Collections
         public void NotNull_should_return_empty_collection()
         {
             string[]? array = null;
-            array.NotNull().Should().BeEmpty();
+            array.NotNull().OfType<string>().Should().BeEmpty();
 
             IEnumerable<string>? enumerable = null;
             enumerable.NotNull().Should().BeEmpty();

@@ -8,7 +8,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 
     <PackageId>MicroElements.CodeContracts.Sources</PackageId>
-    <PackageVersion>1.3.0</PackageVersion>
+    <PackageVersion>1.4.0</PackageVersion>
     <Description>MicroElements source code only package: CodeContracts. Main methods: AssertArgumentNotNull.</Description>
     <PackageTags>MicroElements CodeContracts</PackageTags>
 

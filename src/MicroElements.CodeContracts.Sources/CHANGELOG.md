@@ -1,4 +1,6 @@
 ﻿# Changelog
+## [1.4.0] - 2023-04-13
+- Changed: Disabled warnings
 
 ## [1.3.0] - 2022-05-15
 - Changed: Added CallerArgumentExpression to AssertArgumentNotNull that allows to omit argument name

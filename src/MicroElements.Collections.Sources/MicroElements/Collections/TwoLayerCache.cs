@@ -18,7 +18,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 
-
 namespace MicroElements.Collections.TwoLayerCache
 {
     /// <summary id="TwoLayerCache">
@@ -43,11 +42,22 @@ namespace MicroElements.Collections.TwoLayerCache
         where TKey : notnull
     {
         private readonly int _maxItemCount;
+        private readonly bool _checkColdCacheSize;
         private readonly object _sync = new();
         private readonly IEqualityComparer<TKey> _comparer;
         private ConcurrentDictionary<TKey, TValue> _hotCache;
         private ConcurrentDictionary<TKey, TValue> _coldCache;
         private readonly CacheMetrics _metrics = new();
+
+        record TimedKey(TKey Key, DateTimeOffset Timestamp);
+
+        class TimedKeyComparer : IComparer<TimedKey>
+        {
+            public static readonly TimedKeyComparer Instance = new TimedKeyComparer();
+            public int Compare(TimedKey x, TimedKey y) => x.Timestamp.CompareTo(y.Timestamp);
+        }
+
+        private readonly SortedSet<TimedKey> _sortedKeys = new SortedSet<TimedKey>(TimedKeyComparer.Instance);
 
         /// <summary>
         /// Cache metrics.
@@ -82,12 +92,13 @@ namespace MicroElements.Collections.TwoLayerCache
         /// </summary>
         /// <param name="maxItemCount">Max item count.</param>
         /// <param name="comparer">The <see cref="IEqualityComparer{TKey}"/> implementation to use when comparing keys.</param>
-        public TwoLayerCache(int maxItemCount = 256, IEqualityComparer<TKey>? comparer = null)
+        public TwoLayerCache(int maxItemCount = 256, IEqualityComparer<TKey>? comparer = null, bool checkColdCacheSize = false)
         {
             if (maxItemCount <= 0)
                 throw new ArgumentException($"maxItemCount should be non negative number but was {maxItemCount}");
 
             _maxItemCount = maxItemCount;
+            _checkColdCacheSize = checkColdCacheSize;
             _comparer = comparer ?? EqualityComparer<TKey>.Default;
             _hotCache = CreateCache();
             _coldCache = CreateCache();
@@ -105,7 +116,7 @@ namespace MicroElements.Collections.TwoLayerCache
             var isAdded = _coldCache.TryAdd(key, value);
 
             if (isAdded)
-                Interlocked.Increment(ref _metrics.ItemsAdded);
+                OnColdCacheValueAdded(key);
 
             return isAdded;
         }
@@ -178,7 +189,9 @@ namespace MicroElements.Collections.TwoLayerCache
             }
 
             var valueFromCache = _coldCache.GetOrAdd(key, valueFactory);
-            Interlocked.Increment(ref _metrics.ItemsAdded);
+
+            OnColdCacheValueAdded(key);
+
             return valueFromCache;
         }
 
@@ -203,7 +216,9 @@ namespace MicroElements.Collections.TwoLayerCache
             }
 
             var valueFromCache = _coldCache.GetOrAdd(key, valueFactory, factoryArg);
-            Interlocked.Increment(ref _metrics.ItemsAdded);
+
+            OnColdCacheValueAdded(key);
+
             return valueFromCache;
         }
 
@@ -212,6 +227,23 @@ namespace MicroElements.Collections.TwoLayerCache
             concurrencyLevel: Environment.ProcessorCount,
             capacity: _maxItemCount,
             comparer: _comparer);
+
+        private void OnColdCacheValueAdded(TKey key)
+        {
+            _sortedKeys.Add(new TimedKey(key, DateTimeOffset.UtcNow));
+            Interlocked.Increment(ref _metrics.ItemsAdded);
+
+            if (_checkColdCacheSize && _coldCache.Count > _maxItemCount)
+            {
+                lock (_sync)
+                {
+                    var timedKey = _sortedKeys.Min;
+                    var theOldestKey = timedKey.Key;
+                    _sortedKeys.Remove(timedKey);
+                    _coldCache.TryRemove(theOldestKey, out var removed);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -228,7 +260,7 @@ namespace MicroElements.Collections.TwoLayerCache
                 public static readonly object Lock = new ();
             }
         }
-        
+
         /// <summary> Cache settings that can be used on cache creation. </summary>
         internal class CacheSettings<TKey, TValue>
         {
@@ -260,7 +292,7 @@ namespace MicroElements.Collections.TwoLayerCache
             return Caches.ForType<TKey, TValue>.ByName
                 .GetOrAdd(name, static (name, action) => CreateCacheInstance(name, action), configure);
         }
-        
+
         private static TwoLayerCache<TKey, TValue> InstancePerType<TKey, TValue>(Action<CacheSettings<TKey, TValue>>? configure = null)
         {
             if (Caches.ForType<TKey, TValue>.Singleton == null)
@@ -273,7 +305,7 @@ namespace MicroElements.Collections.TwoLayerCache
                     }
                 }
             }
-            
+
             return Caches.ForType<TKey, TValue>.Singleton;
         }
 

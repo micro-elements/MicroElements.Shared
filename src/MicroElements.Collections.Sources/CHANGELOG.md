@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## [1.9.0] - 2023-09-17
+- PollingCache provides caching that refreshes cached value on retrieve if value was expired
+- TwoLayerCache added check for maxItemCount for cold cache
+
 ## [1.8.0] - 2023-05-25
 - Added: WhereNotNull extension that enumerates only not null values 
 - Added: Execute extension that allows to execute an action on each value while enumerating the source enumeration

@@ -1,27 +1,55 @@
-﻿
-namespace MicroElements.Collections.Caching
+﻿#region License
+
+// Copyright (c) MicroElements. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+#endregion
+#region Supressions
+
+#pragma warning disable
+// ReSharper disable All
+
+#endregion
+
+namespace MicroElements.Collections.PollingCache
 {
     using System;
+    using System.Runtime.ExceptionServices;
+    using System.Threading;
     using System.Threading.Tasks;
     using MicroElements.Collections.Cache;
     using MicroElements.Collections.TwoLayerCache;
 
     /// <summary>
-    /// Provides lazy value with expiration time.
+    /// Provides lazy value with an expiration time.
     /// </summary>
     /// <typeparam name="TArg">The argument type.</typeparam>
     /// <typeparam name="TValue">The result type.</typeparam>
-    internal class ValueWithExpiration<TArg, TValue>
+    internal class CacheValue<TArg, TValue>
     {
         private readonly TArg _arg;
-        private readonly Func<TArg, TValue> _factory;
+        private readonly Func<TArg, Task<TValue?>> _factory;
         private readonly TimeSpan _timeToLive;
-        private Lazy<TValue> _value;
+        private readonly Action<CacheValue<TArg, TValue>>? _afterFactory;
+
+        private Task<TValue?> _result;
+        private TValue? _value;
+        private ExceptionDispatchInfo? _exceptionDispatchInfo;
 
         /// <summary>
-        /// Gets (or evaluates) the value.
+        /// Gets the value task.
         /// </summary>
-        public TValue Value => _value.Value;
+        public Task<TValue?> Result => _result;
+
+        /// <summary>
+        /// Gets evaluated value.
+        /// </summary>
+        public TValue? Value => _value;
+
+        /// <summary>
+        /// Gets an exception occured on getting a value.
+        /// </summary>
+        public Exception? Exception => _exceptionDispatchInfo?.SourceException;
 
         /// <summary>
         /// Gets the expiration time for the <see cref="Value"/>.
@@ -29,160 +57,226 @@ namespace MicroElements.Collections.Caching
         public DateTimeOffset AbsoluteExpiration { get; private set; }
 
         /// <summary>
-        /// aa.
+        /// Initializes a new instance of the <see cref="CacheValue{TArg,TValue}"/> class.
         /// </summary>
         /// <param name="factory">Provides a factory to create a value.</param>
         /// <param name="arg">Provides an argument for the factory.</param>
         /// <param name="timeToLive">Time to live for the value.</param>
-        public ValueWithExpiration(
-            Func<TArg, TValue> factory,
+        /// <param name="afterFactory">Action that executes after factory call.</param>
+        public CacheValue(
+            Func<TArg, Task<TValue?>> factory,
             TArg arg,
-            TimeSpan timeToLive)
+            TimeSpan timeToLive,
+            Action<CacheValue<TArg, TValue>>? afterFactory = null)
         {
             _factory = factory;
             _arg = arg;
             _timeToLive = timeToLive;
-            _value = null!;
+            _afterFactory = afterFactory;
+            _result = null!;
             Reset();
         }
 
+        /// <summary>
+        /// Resets value so it should be evaluated by the provided factory.
+        /// </summary>
         public void Reset()
         {
-            AbsoluteExpiration = DateTimeOffset.Now.Add(_timeToLive);
-            _value = new Lazy<TValue>(ValueFactory);
+            SetExpireAfter(_timeToLive);
+            _result = ValueFactory();
         }
 
-        private TValue ValueFactory()
+        /// <summary>
+        /// Sets new expiration time.
+        /// </summary>
+        /// <param name="timeToLive">Time to live for the value.</param>
+        public void SetExpireAfter(TimeSpan timeToLive)
         {
-            TValue result = _factory(_arg);
-            return result;
+            AbsoluteExpiration = DateTimeOffset.Now.Add(timeToLive);
+        }
+
+        /// <summary>
+        /// Throws the original exception if any.
+        /// </summary>
+        public void Throw()
+        {
+            if (_exceptionDispatchInfo != null)
+                _exceptionDispatchInfo.Throw();
+        }
+
+        private async Task<TValue?> ValueFactory()
+        {
+            try
+            {
+                _value = await _factory(_arg);
+                _exceptionDispatchInfo = null;
+            }
+            catch (Exception e)
+            {
+                _value = default;
+                _exceptionDispatchInfo = ExceptionDispatchInfo.Capture(e);
+            }
+
+            try
+            {
+                _afterFactory?.Invoke(this);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            return _value;
         }
     }
 
+    /// <summary>
+    /// Extensible async cache with TimeToLive.
+    /// </summary>
     internal static class PollingCache
     {
-        public static TimeSpan DefaultTimeToLive { get; } = TimeSpan.FromSeconds(10);
+        public const int MaxItemsCountDefault = 100;
+        public static TimeSpan DefaultTimeToLive { get; } = TimeSpan.FromSeconds(60);
 
-        readonly record struct CacheContext(TimeSpan TimeToLive, string? CacheName);
+        public readonly record struct CacheContext(TimeSpan TimeToLive, string? CacheName);
 
-        public static TValue GetCached<TArg1, TValue>(
-            this TArg1 arg1,
-            Func<TArg1, TValue> factory,
+        public static async Task<TValue?> GetCachedAsync<TArg, TValue>(
+            this TArg arg,
+            Func<TArg, Task<TValue?>> factory,
+            Func<TArg, Func<TArg, CacheContext, CacheValue<TArg, TValue>>, CacheContext, CacheValue<TArg, TValue>>? getOrAdd = null,
+            Action<CacheValue<TArg, TValue>>? afterFactory = null,
+            Func<CacheValue<TArg, TValue>, Task<TValue?>>? processResult = null,
             TimeSpan? timeToLive = null,
             string? cacheName = null,
-            bool useWeakCache = false)
-            where TArg1 : class
+            int maxItemsCount = MaxItemsCountDefault)
         {
-            var cacheKey = arg1;
-            CacheContext context = new(TimeToLive: timeToLive ?? DefaultTimeToLive, CacheName: cacheName);
+            // Composite key
+            var cacheKey = arg;
 
-            Func<TArg1, Func<TArg1, CacheContext, ValueWithExpiration<TArg1, TValue>>, CacheContext, ValueWithExpiration<TArg1, TValue>> getOrAdd;
+            // Provides only one thread per key
+            using var keyLock = await Cache
+                .Instance<TArg, SemaphoreSlim>()
+                .GetOrAdd(cacheKey, _ => new SemaphoreSlim(1))
+                .WaitAsyncAndGetLockReleaser();
 
-            if (useWeakCache)
+            // GetOrAdd func
+            getOrAdd ??= GetCache<TArg, TValue>(cacheName, maxItemsCount).GetOrAdd;
+
+            var context = new CacheContext(TimeToLive: timeToLive ?? DefaultTimeToLive, CacheName: cacheName);
+            var cacheValue = getOrAdd(cacheKey, (key, c) => new CacheValue<TArg, TValue>(FactoryAdapter, key, c.TimeToLive, afterFactory), context);
+
+            // If value is expired then reset it
+            if (DateTimeOffset.Now >= cacheValue.AbsoluteExpiration)
+                cacheValue.Reset();
+
+            // Get or create value
+            var value = await cacheValue.Result;
+
+            // Allows to postprocess cached value.
+            if (processResult != null)
             {
-                getOrAdd = arg1
-                    .GetWeakCache<TArg1, ValueWithExpiration<TArg1, TValue>>(cacheName)
-                    .GetOrAdd;
+                value = await processResult.Invoke(cacheValue);
             }
-            else
+
+            return value;
+
+            async Task<TValue?> FactoryAdapter(TArg args)
             {
-                getOrAdd = TwoLayerCache
-                    .Instance<TArg1, ValueWithExpiration<TArg1, TValue>>(cacheName)
-                    .GetOrAdd;
-            }
-
-            var valueWithExpiration = getOrAdd(
-                cacheKey, (k, a) => new ValueWithExpiration<TArg1, TValue>(FactoryAdapter, k, a.TimeToLive), context);
-
-            if (DateTimeOffset.Now >= valueWithExpiration.AbsoluteExpiration)
-                valueWithExpiration.Reset();
-
-            return valueWithExpiration.Value;
-
-            TValue FactoryAdapter(TArg1 arg)
-            {
-                return factory(arg);
+                var factoryResult = await factory(args);
+                return factoryResult;
             }
         }
 
-        public static Task<TValue> GetCachedAsync<TArg1, TValue>(
-            this TArg1 arg1,
-            Func<TArg1, Task<TValue>> factory,
-            TimeSpan? timeToLive = null,
-            string? cacheName = null)
-        {
-            var cacheKey = arg1;
-            CacheContext context = new(TimeToLive: timeToLive ?? DefaultTimeToLive, CacheName: cacheName);
-            var valueWithExpiration = TwoLayerCache
-                .Instance<TArg1, ValueWithExpiration<TArg1, Task<TValue>>>(cacheName)
-                .GetOrAdd(cacheKey, (k, a) => new ValueWithExpiration<TArg1, Task<TValue>>(FactoryAdapter, k, a.TimeToLive), context);
-
-            if (DateTimeOffset.Now >= valueWithExpiration.AbsoluteExpiration)
-                valueWithExpiration.Reset();
-
-            return valueWithExpiration.Value;
-
-            Task<TValue> FactoryAdapter(TArg1 arg)
-            {
-                return factory(arg);
-            }
-        }
-
-        internal static TwoLayerCache<TArg1, ValueWithExpiration<TArg1, Task<TValue>>> GetCache<TArg1, TValue>(string? cacheName = null, int maxItemsCount = 16) =>
-            TwoLayerCache.Instance<TArg1, ValueWithExpiration<TArg1, Task<TValue>>>(cacheName, settings => settings.MaxItemCount = maxItemsCount);
-
-        internal static TwoLayerCache<(TValueProvider ValueProvider, TArg1 Arg1), ValueWithExpiration<(TValueProvider, TArg1), Task<TValue>>> GetCache<TValueProvider, TArg1, TValue>(string? cacheName = null, int maxItemsCount = 16) =>
-            TwoLayerCache.Instance<(TValueProvider ValueProvider, TArg1 Arg1), ValueWithExpiration<(TValueProvider, TArg1), Task<TValue>>>(cacheName, settings => settings.MaxItemCount = maxItemsCount);
-
-        internal static TwoLayerCache<(TValueProvider ValueProvider, TArg1 Arg1, TArg2 Arg2), ValueWithExpiration<(TValueProvider, TArg1, TArg2), Task<TValue>>> GetCache<TValueProvider, TArg1, TArg2, TValue>(string? cacheName = null, int maxItemsCount = 16) =>
-            TwoLayerCache.Instance<(TValueProvider ValueProvider, TArg1 Arg1, TArg2 Arg2), ValueWithExpiration<(TValueProvider, TArg1, TArg2), Task<TValue>>>(cacheName, settings => settings.MaxItemCount = maxItemsCount);
-
-        public static Task<TValue> GetCachedAsync<TValueProvider, TArg1, TValue>(
+        public static async Task<TValue?> GetCachedAsync<TValueProvider, TArg1, TValue>(
             this TValueProvider valueProvider,
             TArg1 arg1,
-            Func<TValueProvider, TArg1, Task<TValue>> factory,
+            Func<TValueProvider, TArg1, Task<TValue?>> factory,
+            Action<CacheValue<(TValueProvider, TArg1), TValue>>? afterFactory = null,
+            Func<CacheValue<(TValueProvider, TArg1), TValue>, Task<TValue?>>? processResult = null,
             TimeSpan? timeToLive = null,
-            string? cacheName = null)
+            string? cacheName = null,
+            int maxItemsCount = MaxItemsCountDefault)
         {
+            // Composite key
             var cacheKey = (ValueProvider: valueProvider, Arg1: arg1);
-            CacheContext context = new(TimeToLive: timeToLive ?? DefaultTimeToLive, CacheName: cacheName);
-            var valueWithExpiration = GetCache<TValueProvider, TArg1, TValue>(cacheName)
-                .GetOrAdd(cacheKey, (key, a)
-                    => new ValueWithExpiration<(TValueProvider, TArg1), Task<TValue>>(FactoryAdapter, key, a.TimeToLive), context);
 
-            if (DateTimeOffset.Now >= valueWithExpiration.AbsoluteExpiration)
-                valueWithExpiration.Reset();
+            return await cacheKey.GetCachedAsync(FactoryAdapter, null, afterFactory, processResult, timeToLive, cacheName, maxItemsCount);
 
-            return valueWithExpiration.Value;
-
-            Task<TValue> FactoryAdapter((TValueProvider, TArg1) args)
+            async Task<TValue?> FactoryAdapter((TValueProvider, TArg1) args)
             {
-                return factory(args.Item1, args.Item2);
+                var value = await factory(args.Item1, args.Item2);
+                return value;
             }
         }
 
-        public static Task<TValue> GetCachedAsync<TValueProvider, TArg1, TArg2, TValue>(
+        public static async Task<TValue?> GetCachedAsync<TValueProvider, TArg1, TArg2, TValue>(
             this TValueProvider valueProvider,
             TArg1 arg1,
             TArg2 arg2,
-            Func<TValueProvider, TArg1, TArg2, Task<TValue>> factory,
+            Func<TValueProvider, TArg1, TArg2, Task<TValue?>> factory,
+            Action<CacheValue<(TValueProvider, TArg1, TArg2), TValue>>? afterFactory = null,
+            Func<CacheValue<(TValueProvider, TArg1, TArg2), TValue>, Task<TValue?>>? processResult = null,
             TimeSpan? timeToLive = null,
-            string? cacheName = null)
+            string? cacheName = null,
+            int maxItemsCount = MaxItemsCountDefault)
         {
+            // Composite key
             var cacheKey = (ValueProvider: valueProvider, Arg1: arg1, Arg2: arg2);
-            CacheContext context = new(TimeToLive: timeToLive ?? DefaultTimeToLive, CacheName: cacheName);
-            var valueWithExpiration = GetCache<TValueProvider, TArg1, TArg2, TValue>(cacheName)
-                .GetOrAdd(cacheKey, (k, a) => new ValueWithExpiration<(TValueProvider, TArg1, TArg2), Task<TValue>>(FactoryAdapter, k, a.TimeToLive), context);
 
-            if (DateTimeOffset.Now >= valueWithExpiration.AbsoluteExpiration)
-                valueWithExpiration.Reset();
+            return await cacheKey.GetCachedAsync(FactoryAdapter, null, afterFactory, processResult, timeToLive, cacheName, maxItemsCount);
 
-            return valueWithExpiration.Value;
-
-            Task<TValue> FactoryAdapter((TValueProvider, TArg1, TArg2) args)
+            async Task<TValue?> FactoryAdapter((TValueProvider, TArg1, TArg2) args)
             {
-                return factory(args.Item1, args.Item2, args.Item3);
+                var value = await factory(args.Item1, args.Item2, args.Item3);
+                return value;
             }
+        }
+
+        internal static TwoLayerCache<TArg1, CacheValue<TArg1, TValue>> GetCache<TArg1, TValue>(string? cacheName = null, int maxItemsCount = MaxItemsCountDefault) =>
+            TwoLayerCache.Instance<TArg1, CacheValue<TArg1, TValue>>(cacheName, settings =>
+            {
+                settings.MaxItemCount = maxItemsCount;
+                settings.CheckColdCacheSize = true;
+            });
+    }
+
+    /// <summary>
+    /// AwaitableLock based on <see cref="SemaphoreSlim"/>.
+    /// Implements <see cref="IDisposable"/> to use in using block.
+    /// It waits for semaphore and releases it on dispose.
+    /// </summary>
+    internal static class AwaitableLock
+    {
+        internal readonly struct LockLease : IDisposable
+        {
+            private readonly SemaphoreSlim _lock;
+
+            internal LockLease(SemaphoreSlim @lock) => _lock = @lock;
+
+            /// <inheritdoc/>
+            public void Dispose() => _lock.Release();
+        }
+
+        /// <summary>
+        /// Waits async for <paramref name="semaphoreSlim"/> and returns <see cref="IDisposable"/> that will release lock on dispose.
+        /// </summary>
+        /// <param name="semaphoreSlim">SemaphoreSlim.</param>
+        /// <returns><see cref="IDisposable"/> that will release lock on dispose.</returns>
+        public static async ValueTask<LockLease> WaitAsyncAndGetLockReleaser(this SemaphoreSlim semaphoreSlim)
+        {
+            await semaphoreSlim.WaitAsync();
+            return new LockLease(semaphoreSlim);
+        }
+
+        /// <summary>
+        /// Waits for <paramref name="semaphoreSlim"/> and returns <see cref="IDisposable"/> that will release lock on dispose.
+        /// </summary>
+        /// <param name="semaphoreSlim">SemaphoreSlim.</param>
+        /// <returns><see cref="IDisposable"/> that will release lock on dispose.</returns>
+        public static LockLease WaitAndGetLockReleaser(this SemaphoreSlim semaphoreSlim)
+        {
+            semaphoreSlim.Wait();
+            return new LockLease(semaphoreSlim);
         }
     }
 }

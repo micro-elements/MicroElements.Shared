@@ -6,8 +6,6 @@
 #endregion
 #region Supressions
 
-using System.Runtime.CompilerServices;
-
 #pragma warning disable
 // ReSharper disable All
 
@@ -19,6 +17,7 @@ namespace MicroElements.Collections.Cache
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
 
     /// <summary id="Cache">
     ///<![CDATA[

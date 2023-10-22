@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Reflection;
 using FluentAssertions;
 using MicroElements.Collections.TwoLayerCache;
 using Xunit;
@@ -10,7 +11,7 @@ namespace MicroElements.Shared.Tests.Collections
         [Fact]
         public void CacheSwap()
         {
-            var cache = new TwoLayerCache<string, string>(4);
+            var cache = new TwoLayerCache<string, string>(4, checkColdCacheSize: false);
 
             // Add 10 items to cold cache
             for (int i = 1; i <= 10; i++)
@@ -84,7 +85,7 @@ namespace MicroElements.Shared.Tests.Collections
             cache.TryGetValue("value1", out var value1FromCache);
             value1FromCache.Should().BeSameAs(value1);
         }
-        
+
         [Fact]
         public void CacheGet2()
         {
@@ -93,7 +94,7 @@ namespace MicroElements.Shared.Tests.Collections
             {
                 dictionary.GetOrAdd($"key{i}", $"value{i}");
             }
-            
-        }   
+
+        }
     }
 }

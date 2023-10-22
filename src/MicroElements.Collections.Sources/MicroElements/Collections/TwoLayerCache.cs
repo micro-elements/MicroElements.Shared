@@ -38,7 +38,7 @@ namespace MicroElements.Collections.TwoLayerCache
     /// </summary>
     /// <typeparam name="TKey">Key type.</typeparam>
     /// <typeparam name="TValue">Value type.</typeparam>
-    internal class TwoLayerCache<TKey, TValue>
+    internal partial class TwoLayerCache<TKey, TValue>
         where TKey : notnull
     {
         private readonly int _maxItemCount;
@@ -48,16 +48,6 @@ namespace MicroElements.Collections.TwoLayerCache
         private ConcurrentDictionary<TKey, TValue> _hotCache;
         private ConcurrentDictionary<TKey, TValue> _coldCache;
         private readonly CacheMetrics _metrics = new();
-
-        record TimedKey(TKey Key, DateTimeOffset Timestamp);
-
-        class TimedKeyComparer : IComparer<TimedKey>
-        {
-            public static readonly TimedKeyComparer Instance = new TimedKeyComparer();
-            public int Compare(TimedKey x, TimedKey y) => x.Timestamp.CompareTo(y.Timestamp);
-        }
-
-        private readonly SortedSet<TimedKey> _sortedKeys = new SortedSet<TimedKey>(TimedKeyComparer.Instance);
 
         /// <summary>
         /// Cache metrics.
@@ -227,19 +217,30 @@ namespace MicroElements.Collections.TwoLayerCache
             concurrencyLevel: Environment.ProcessorCount,
             capacity: _maxItemCount,
             comparer: _comparer);
+    }
+
+    internal partial class TwoLayerCache<TKey, TValue>
+    {
+        private readonly Lazy<Queue<TKey>> _keysQueue = new Lazy<Queue<TKey>>(() => new Queue<TKey>());
 
         private void OnColdCacheValueAdded(TKey key)
         {
-            _sortedKeys.Add(new TimedKey(key, DateTimeOffset.UtcNow));
-            Interlocked.Increment(ref _metrics.ItemsAdded);
+            if (_checkColdCacheSize)
+            {
+                _keysQueue.Value.Enqueue(key);
+                CheckColdCacheSize();
+            }
 
+            Interlocked.Increment(ref _metrics.ItemsAdded);
+        }
+
+        private void CheckColdCacheSize()
+        {
             if (_checkColdCacheSize && _coldCache.Count > _maxItemCount)
             {
                 lock (_sync)
                 {
-                    var timedKey = _sortedKeys.Min;
-                    var theOldestKey = timedKey.Key;
-                    _sortedKeys.Remove(timedKey);
+                    var theOldestKey = _keysQueue.Value.Dequeue();
                     _coldCache.TryRemove(theOldestKey, out var removed);
                 }
             }
@@ -271,6 +272,9 @@ namespace MicroElements.Collections.TwoLayerCache
 
             /// <summary> Gets or sets max items count per cache. </summary>
             public int MaxItemCount { get; set; } = 256;
+
+            /// <summary> Gets or sets a value that indicates that MaxItemCount also used for cold cache. </summary>
+            public bool CheckColdCacheSize { get; set; } = false;
 
             /// <summary> Gets or sets optional key comparer for cache. </summary>
             public IEqualityComparer<TKey>? Comparer { get; set; }
@@ -316,6 +320,7 @@ namespace MicroElements.Collections.TwoLayerCache
 
             return new TwoLayerCache<TKey, TValue>(
                 maxItemCount: settings.MaxItemCount,
+                checkColdCacheSize: settings.CheckColdCacheSize,
                 comparer: settings.Comparer ?? EqualityComparer<TKey>.Default);
         }
     }

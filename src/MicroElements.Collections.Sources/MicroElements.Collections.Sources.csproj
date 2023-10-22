@@ -8,11 +8,11 @@
     <TargetFramework>netstandard2.1</TargetFramework>
 
     <PackageId>MicroElements.Collections.Sources</PackageId>
-    <PackageVersion>1.9.0</PackageVersion>
+    <PackageVersion>1.10.0</PackageVersion>
     <Description>MicroElements source only package:
       Collection extensions: NotNull, Iterate, Execute, WhereNotNull, Materialize, IncludeByWildcardPatterns, ExcludeByWildcardPatterns.
-      Special collections: TwoLayerCache.</Description>
-    <PackageTags>MicroElements collections functional NotNull Materialize Iterate Wildcard TwoLayerCache</PackageTags>
+      Special collections: Cache, TwoLayerCache, PollingCache.</Description>
+    <PackageTags>MicroElements collections functional NotNull Materialize Iterate Wildcard Cache TwoLayerCache PollingCache</PackageTags>
 
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

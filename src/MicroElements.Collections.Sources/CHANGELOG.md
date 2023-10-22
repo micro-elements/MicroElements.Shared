@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## [1.10.0] - 2023-10-22
+- PollingCache become async only, unified methods, more customizations
+- TwoLayerCache fixed maxItemCount for cold cache
+
 ## [1.9.0] - 2023-09-17
 - PollingCache provides caching that refreshes cached value on retrieve if value was expired
 - TwoLayerCache added check for maxItemCount for cold cache

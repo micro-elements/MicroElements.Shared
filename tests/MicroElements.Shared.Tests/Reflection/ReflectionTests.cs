@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Linq;
 using FluentAssertions;
+using MicroElements.Reflection;
 using MicroElements.Reflection.ObjectExtensions;
+using MicroElements.Reflection.TypeCaching;
 using MicroElements.Reflection.TypeExtensions;
 using Xunit;
 
@@ -61,7 +64,10 @@ namespace MicroElements.Shared.Tests.Reflection
         [Fact]
         public void test_type_cache()
         {
-            //TypeCache.NumericTypesWithNullable.Types.Count.Should().Be(22);
+            var array = TypeCache.AppDomainTypes.ToArray();
+            var typeCache = TypeCache.Create(AssemblySource.AppDomainExcludingSystem, TypeFilters.AllPublicTypes).ToArray();
+
+            //TypeCache.CreateAppDomainCache()
             //TypeCache.NumericTypes.Types.Count.Should().Be(11);
 
             //// Use LocalDate to force load NodaTime assembly

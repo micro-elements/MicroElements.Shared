@@ -3,6 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 #endregion
 #region Supressions
+
 #pragma warning disable
 // ReSharper disable All
 #endregion
@@ -10,6 +11,7 @@
 namespace MicroElements.Reflection.TypeCaching
 {
     using System;
+    using System.Collections;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
@@ -18,7 +20,7 @@ namespace MicroElements.Reflection.TypeCaching
     using MicroElements.Collections.Extensions.NotNull;
 
     /// <summary> Represents type cache abstraction. </summary>
-    internal interface ITypeCache
+    internal interface ITypeCache: IEnumerable<Type>
     {
         Type? GetType(string typeName);
         string? GetName(Type type);
@@ -125,6 +127,12 @@ namespace MicroElements.Reflection.TypeCaching
                 aliasForType[type] = typeName;
             }
         }
+
+        /// <inheritdoc />
+        public IEnumerator<Type> GetEnumerator() => _types.GetEnumerator();
+
+        /// <inheritdoc />
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     /// <summary> Lazy cache. Gets values only on first attempt. </summary>
@@ -149,6 +157,12 @@ namespace MicroElements.Reflection.TypeCaching
 
         /// <inheritdoc />
         public void AddType(Type type, string typeName) => _typeCache.Value.AddType(type, typeName);
+
+        /// <inheritdoc />
+        public IEnumerator<Type> GetEnumerator() => _typeCache.Value.GetEnumerator();
+
+        /// <inheritdoc />
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     /// <summary> Type cache that gets value from parent if it was not found in current cache. </summary>
@@ -168,6 +182,23 @@ namespace MicroElements.Reflection.TypeCaching
         public string? GetName(Type type) => _typeCache.GetName(type) ?? _parent.GetName(type);
 
         public void AddType(Type type, string typeName) => _typeCache.AddType(type, typeName);
+
+        /// <inheritdoc />
+        public IEnumerator<Type> GetEnumerator()
+        {
+            foreach (var type in _typeCache)
+            {
+                yield return type;
+            }
+
+            foreach (var type in _parent)
+            {
+                yield return type;
+            }
+        }
+
+        /// <inheritdoc />
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     internal partial class TypeCache
@@ -184,6 +215,12 @@ namespace MicroElements.Reflection.TypeCaching
             if (reloadOnAssemblyLoad)
                 AppDomain.CurrentDomain.AssemblyLoad += (sender, args) => typeCache.Invalidate();
             return typeCache;
+        }
+
+        /// <summary> Creates type cache from AssemblySource and TypeFilter. </summary>
+        public static ITypeCache Create(AssemblySource assemblySource, TypeFilters typeFilter)
+        {
+            return new LazyTypeCache(() => new TypeCache(assemblySource.LoadTypes(typeFilter)));
         }
     }
 

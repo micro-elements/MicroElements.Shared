@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [1.9.0] - 2023-10-21
+- Changed: `ITypeCache` become `IEnumerable<Type>`
+- Changed: `TypeLoader` unified assembly loading, `ExcludeByPatterns` fix
+- Added: `TypeCache.Create` method to create type cache with customizations
+- Added: `Invoker` creates compiled cached delegates more easy than `CodeCompiler`
+
 ## [1.8.0] - 2022-12-17
 - Changed: `MicroElements.Reflection.TypeCache` renamed to `MicroElements.Reflection.TypeCaching`
 - Added: `LazyTypeCache` 

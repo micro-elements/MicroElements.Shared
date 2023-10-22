@@ -4,7 +4,7 @@
 
 MicroElements source only package:
       Collection extensions: NotNull, Iterate, Execute, WhereNotNull, Materialize, IncludeByWildcardPatterns, ExcludeByWildcardPatterns.
-      Special collections: TwoLayerCache.
+      Special collections: Cache, TwoLayerCache, PollingCache.
 
 ## Extensions
 

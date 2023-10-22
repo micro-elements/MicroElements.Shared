@@ -40,7 +40,7 @@ namespace MicroElements.Reflection
                 .GetTypes(typeFilters, messages);
             return types;
         }
-        
+
         /// <summary>
         /// Loads assemblies according <paramref name="assemblySource"/>.
         /// 1. Gets all assemblies from <see cref="AppDomain.CurrentDomain"/> if <see cref="AssemblySource.LoadFromDomain"/> is true.
@@ -56,42 +56,33 @@ namespace MicroElements.Reflection
         {
             assemblySource.AssertArgumentNotNull(nameof(assemblySource));
 
-            IEnumerable<Assembly> assemblies = Array.Empty<Assembly>();
-            
-            if (assemblySource.LoadFromDomain)
-                assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            
-            if (assemblySource.LoadFromDirectory != null)
+            IEnumerable<Assembly> assemblies = Array.Empty<Assembly>()
+                .ConcatIf(assemblySource.LoadFromDomain, AppDomain.CurrentDomain.GetAssemblies)
+                .ConcatIf(assemblySource.LoadFromDirectory != null, AssembliesFromDirectory)
+                .ConcatIf(assemblySource.Assemblies != null, () => assemblySource.Assemblies)
+                .IncludeByPatterns(assembly => assembly.FullName, assemblySource.IncludePatterns)
+                .ExcludeByPatterns(assembly => assembly.FullName, assemblySource.ExcludePatterns)
+                .Distinct();
+
+            return assemblies;
+
+            IEnumerable<Assembly> AssembliesFromDirectory()
             {
                 if (!Directory.Exists(assemblySource.LoadFromDirectory))
                     throw new DirectoryNotFoundException($"Assembly ScanDirectory {assemblySource.LoadFromDirectory} is not exists.");
 
-                var searchPatterns = assemblySource.SearchPatterns ?? new[] { "*.dll" };
+                var searchPatterns = assemblySource.FileSearchPatterns ?? new[] { "*.dll" };
                 var assembliesFromDirectory =
                     searchPatterns
-                        .SelectMany(filePattern => Directory.EnumerateFiles(assemblySource.LoadFromDirectory, filePattern, SearchOption.TopDirectoryOnly))
+                        .SelectMany(filePattern => Directory.EnumerateFiles(assemblySource.LoadFromDirectory!, filePattern, SearchOption.TopDirectoryOnly))
                         .IncludeByPatterns(fileName => fileName, assemblySource.IncludePatterns)
                         .ExcludeByPatterns(fileName => fileName, assemblySource.ExcludePatterns)
                         .Select(assemblyFile => TryLoadAssemblyFrom(assemblyFile, messages)!)
                         .Where(assembly => assembly != null);
-
-                assemblies = assemblies.Concat(assembliesFromDirectory);
+                return assembliesFromDirectory;
             }
-
-            if (assemblySource.Assemblies is { Count: > 0 })
-            {
-                assemblies = assemblies.Concat(assemblySource.Assemblies);
-            }
-            
-            assemblies = assemblies
-                .IncludeByPatterns(assembly => assembly.FullName, assemblySource.IncludePatterns)
-                .ExcludeByPatterns(assembly => assembly.FullName, assemblySource.ExcludePatterns);
-
-            assemblies = assemblies.Distinct();
-
-            return assemblies;
         }
-        
+
         /// <summary>
         /// Gets types from assembly list according type filters.
         /// </summary>
@@ -170,27 +161,12 @@ namespace MicroElements.Reflection
             }
         }
     }
-    
+
     /// <summary>
     /// Assembly source.
     /// </summary>
-    internal class AssemblySource
+    internal partial class AssemblySource
     {
-        /// <summary>
-        /// Gets an empty assembly source. No assemblies, no filters.
-        /// </summary>
-        public static AssemblySource Empty { get; } = new (
-            loadFromDomain: false,
-            loadFromDirectory: null);
-
-        /// <summary>
-        /// All assemblies from AppDomain.
-        /// </summary>
-        public static AssemblySource AppDomain { get; } = new (
-            loadFromDomain: true,
-            loadFromDirectory: null,
-            filterByTypeFilters: true);
-
         /// <summary> Load assemblies from <see cref="System.AppDomain.CurrentDomain"/>. </summary>
         public bool LoadFromDomain { get; set; }
 
@@ -200,7 +176,7 @@ namespace MicroElements.Reflection
         /// <summary>
         /// Optional file patterns for loading from directory.
         /// </summary>
-        public IReadOnlyCollection<string>? SearchPatterns { get; set; }
+        public IReadOnlyCollection<string>? FileSearchPatterns { get; set; }
 
         /// <summary>
         /// <see cref="Assembly.FullName"/> wildcard include patterns.
@@ -220,34 +196,41 @@ namespace MicroElements.Reflection
         public IReadOnlyCollection<Assembly>? Assemblies { get; set; }
 
         /// <summary>
-        /// Filter assemblies after type filtering and take only assemblies that owns filtered types.
-        /// </summary>
-        public bool FilterByTypeFilters { get; set; } = true;
-        
-        /// <summary>
         /// Initializes a new instance of the <see cref="AssemblySource"/> class.
         /// </summary>
         /// <param name="loadFromDomain">Optional load assemblies from <see cref="System.AppDomain.CurrentDomain"/>.</param>
         /// <param name="loadFromDirectory">Optional load assemblies from provided directory.</param>
-        /// <param name="searchPatterns">Optional file patterns for loading from directory.</param>
-        /// <param name="assemblyFilters">Optional assembly filters.</param>
+        /// <param name="fileSearchPatterns">Optional file patterns for loading from directory.</param>
         /// <param name="assemblies">User provided assemblies.</param>
-        /// <param name="filterByTypeFilters">Filter assemblies after type filtering and take only assemblies that owns filtered types.</param>
         public AssemblySource(
             bool loadFromDomain = false,
             string? loadFromDirectory = null,
-            IReadOnlyCollection<string>? searchPatterns = null,
-            IReadOnlyCollection<Assembly>? assemblies = null,
-            bool filterByTypeFilters = true)
+            IReadOnlyCollection<string>? fileSearchPatterns = null,
+            IReadOnlyCollection<Assembly>? assemblies = null)
         {
             LoadFromDomain = loadFromDomain;
-            
+
             LoadFromDirectory = loadFromDirectory;
-            SearchPatterns = searchPatterns;
-            
+            FileSearchPatterns = fileSearchPatterns;
+
             Assemblies = assemblies;
-            FilterByTypeFilters = filterByTypeFilters;
         }
+    }
+
+    internal partial class AssemblySource
+    {
+        /// <summary> Gets an empty assembly source. No assemblies, no filters. </summary>
+        public static AssemblySource Empty { get; } = new (loadFromDomain: false);
+
+        /// <summary> All assemblies from AppDomain. </summary>
+        public static AssemblySource AppDomain { get; } = new (loadFromDomain: true);
+
+        /// <summary> All assemblies from AppDomain excluding system assemblies. </summary>
+        public static AssemblySource AppDomainExcludingSystem { get; } = new ()
+        {
+            LoadFromDomain = true,
+            ExcludePatterns = new []{ "System.*", "Microsoft.*" }
+        };
     }
 
     /// <summary>
@@ -263,7 +246,7 @@ namespace MicroElements.Reflection
             IsPublic = true,
             FullNameExcludes = new[] { "<*" }
         };
-        
+
         /// <summary> Include only public types. </summary>
         public bool IsPublic { get; set; }
 
@@ -273,7 +256,7 @@ namespace MicroElements.Reflection
         /// <summary> Exclude types that <see cref="Type.FullName"/> matches filters. </summary>
         public IReadOnlyCollection<string>? FullNameExcludes { get; set; }
     }
-    
+
     /// <summary>
     /// Provides methods for filtering.
     /// </summary>
@@ -282,6 +265,13 @@ namespace MicroElements.Reflection
         internal static string WildcardToRegex(string pat) => "^" + Regex.Escape(pat).Replace(@"\*", ".*").Replace(@"\?", ".") + "$";
 
         internal static bool FileNameMatchesPattern(string filename, string pattern) => Regex.IsMatch(Path.GetFileName(filename) ?? string.Empty, WildcardToRegex(pattern));
+
+        internal static IEnumerable<T> ConcatIf<T>(this IEnumerable<T> values, bool predicate, Func<IEnumerable<T>?> valuesFactory)
+        {
+            if (predicate && valuesFactory() is {} valuesToAdd)
+                return values.Concat(valuesToAdd);
+            return values;
+        }
 
         internal static IEnumerable<T> IncludeByPatterns<T>(this IEnumerable<T> values, Func<T, string> filterComponent, IReadOnlyCollection<string>? includePatterns = null)
         {
@@ -294,7 +284,7 @@ namespace MicroElements.Reflection
         {
             if (excludePatterns == null)
                 return values;
-            return values.Where(value => excludePatterns.Any(excludePattern => !FileNameMatchesPattern(filterComponent(value), excludePattern)));
+            return values.Where(value => excludePatterns.All(excludePattern => !FileNameMatchesPattern(filterComponent(value), excludePattern)));
         }
     }
 }

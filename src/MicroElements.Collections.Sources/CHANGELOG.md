@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.11.0] - 2024-06-17
+- TwoLayerCache concurrency bug
+
 ## [1.10.0] - 2023-10-22
 - PollingCache become async only, unified methods, more customizations
 - TwoLayerCache fixed maxItemCount for cold cache

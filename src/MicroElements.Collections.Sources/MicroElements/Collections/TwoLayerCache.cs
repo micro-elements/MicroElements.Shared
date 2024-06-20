@@ -227,23 +227,21 @@ namespace MicroElements.Collections.TwoLayerCache
         {
             if (_checkColdCacheSize)
             {
-                _keysQueue.Value.Enqueue(key);
-                CheckColdCacheSize();
+                lock (_keysQueue)
+                {
+                    if (_coldCache.Count > _maxItemCount)
+                    {
+                        // Get the oldest key and remove it from the cold cache
+                        var theOldestKey = _keysQueue.Value.Dequeue();
+                        _coldCache.TryRemove(theOldestKey, out var removed);
+                    }
+
+                    // Store added key
+                    _keysQueue.Value.Enqueue(key);
+                }
             }
 
             Interlocked.Increment(ref _metrics.ItemsAdded);
-        }
-
-        private void CheckColdCacheSize()
-        {
-            if (_checkColdCacheSize && _coldCache.Count > _maxItemCount)
-            {
-                lock (_sync)
-                {
-                    var theOldestKey = _keysQueue.Value.Dequeue();
-                    _coldCache.TryRemove(theOldestKey, out var removed);
-                }
-            }
         }
     }
 
